@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import Navbar from "@/components/Navbar";
 import { SyncUserProvider } from "@/components/providers/sync-user-provider";
+import { ToastProvider } from "@/components/providers/toast-provider";
 import { koreanLocalization } from "@/lib/clerk/localization";
 import "./globals.css";
 
@@ -18,8 +19,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SaaS 템플릿",
-  description: "Next.js + Clerk + Supabase 보일러플레이트",
+  title: "My Trip - 한국 관광지 정보 서비스",
+  description: "전국 관광지 정보를 검색하고 지도에서 확인하며 상세 정보를 조회할 수 있는 웹 서비스",
+  keywords: ["관광지", "여행", "한국", "관광정보", "지도"],
+  openGraph: {
+    title: "My Trip - 한국 관광지 정보 서비스",
+    description: "전국 관광지 정보를 검색하고 지도에서 확인하며 상세 정보를 조회할 수 있는 웹 서비스",
+    type: "website",
+    locale: "ko_KR",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "My Trip - 한국 관광지 정보 서비스",
+    description: "전국 관광지 정보를 검색하고 지도에서 확인하며 상세 정보를 조회할 수 있는 웹 서비스",
+  },
 };
 
 export default function RootLayout({
@@ -40,8 +53,10 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           <SyncUserProvider>
-            <Navbar />
-            {children}
+            <ToastProvider>
+              <Navbar />
+              {children}
+            </ToastProvider>
           </SyncUserProvider>
         </body>
       </html>

@@ -23,3 +23,644 @@
 - [ ] `tsconfig.json` 파일
 - [ ] `eslint.config.mjs` 파일
 - [ ] `AGENTS.md` 파일
+
+# My Trip - 개발 TODO 리스트
+
+> PRD, Flowchart, Design 문서 기반 작업 항목 정리
+
+## Phase 1: 기본 구조 & 공통 설정
+
+- [ ] 프로젝트 셋업
+  - [ ] 환경변수 설정 (`.env`)
+    - [ ] `NEXT_PUBLIC_TOUR_API_KEY` (한국관광공사 API)
+    - [ ] `TOUR_API_KEY` (서버 사이드용)
+    - [ ] `NEXT_PUBLIC_NAVER_MAP_CLIENT_ID` (네이버 지도)
+    - [ ] Clerk 인증 키 확인
+    - [ ] Supabase 키 확인
+- [x] API 클라이언트 구현
+  - [x] `lib/api/tour-api.ts` 생성
+    - [x] `getAreaCode()` - 지역코드 조회 (`areaCode2`)
+    - [x] `getAreaBasedList()` - 지역 기반 목록 (`areaBasedList2`)
+    - [x] `searchKeyword()` - 키워드 검색 (`searchKeyword2`)
+    - [x] `getDetailCommon()` - 공통 정보 (`detailCommon2`)
+    - [x] `getDetailIntro()` - 소개 정보 (`detailIntro2`)
+    - [x] `getDetailImage()` - 이미지 목록 (`detailImage2`)
+    - [x] `getDetailPetTour()` - 반려동물 정보 (`detailPetTour2`)
+    - [x] 공통 파라미터 처리 (serviceKey, MobileOS, MobileApp, \_type)
+    - [x] 에러 처리 및 재시도 로직
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] `lib/types/` 디렉토리 생성
+    - [x] `lib/api/` 디렉토리 생성
+    - [x] `TourAPIError` 커스텀 에러 클래스 구현
+    - [x] `fetchWithRetry()` 함수 구현 (최대 3회 재시도, 지수 백오프, 30초 타임아웃)
+    - [x] `getServiceKey()` 환경변수 검증 함수 (NEXT_PUBLIC_TOUR_API_KEY 우선, TOUR_API_KEY 대체)
+    - [x] `buildQueryString()` 쿼리 문자열 생성 함수
+    - [x] `parseAPIResponse()` 응답 파싱 및 검증 함수
+    - [x] Content Type ID 상수 정의 (CONTENT_TYPE 객체)
+    - [x] 모든 API 함수에 필수 파라미터 검증 추가
+    - [x] 타입 안전성 보장 (TypeScript strict 모드)
+- [x] 타입 정의
+  - [x] `lib/types/tour.ts` 생성
+    - [x] `TourItem` 인터페이스 (목록)
+    - [x] `TourDetail` 인터페이스 (상세)
+    - [x] `TourIntro` 인터페이스 (운영정보)
+    - [x] `TourImage` 인터페이스 (이미지)
+    - [x] `PetTourInfo` 인터페이스 (반려동물)
+  ***
+  - [x] 추가 타입 정의 (plan 모드 build)
+    - [x] `AreaCode` 인터페이스 (지역코드 정보)
+    - [x] `TourAPIResponse<T>` 제네릭 응답 래퍼 타입
+    - [x] `AreaCodeResponse` 타입
+    - [x] `TourListResponse` 인터페이스 (목록 응답)
+    - [x] `TourSearchResponse` 타입 (검색 응답)
+    - [x] `TourDetailResponse` 인터페이스
+    - [x] `TourIntroResponse` 인터페이스
+    - [x] `TourImageResponse` 인터페이스
+    - [x] `PetTourInfoResponse` 인터페이스
+    - [x] `AreaCodeParams` 인터페이스
+    - [x] `AreaBasedListParams` 인터페이스
+    - [x] `SearchKeywordParams` 인터페이스
+    - [x] `DetailParams` 인터페이스
+    - [x] `DetailIntroParams` 인터페이스
+    - [x] `ContentTypeId` 타입 및 `CONTENT_TYPE` 상수 객체
+  - [x] `lib/types/stats.ts` 생성
+    - [x] `RegionStats` 인터페이스
+    - [x] `TypeStats` 인터페이스
+    - [x] `StatsSummary` 인터페이스
+- [x] 레이아웃 구조
+  - [x] `app/layout.tsx` 업데이트
+    - [x] 메타데이터 설정
+    - [x] 헤더/푸터 구조 확인
+  - [x] `components/Navbar.tsx` 업데이트
+    - [x] 로고, 검색창, 로그인 버튼
+    - [x] 네비게이션 링크 (홈, 통계, 북마크)
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] 메타데이터에 Open Graph 및 Twitter Card 태그 추가
+    - [x] Navbar에 sticky 헤더 스타일 적용
+    - [x] Navbar에 아이콘 추가 (lucide-react: Home, BarChart3, Bookmark)
+    - [x] 검색창 영역 placeholder 추가 (Phase 2에서 구현 예정)
+    - [x] ToastProvider를 layout.tsx에 추가
+- [x] 공통 컴포넌트
+  - [x] `components/ui/loading.tsx` - 로딩 스피너
+  - [x] `components/ui/skeleton.tsx` - 스켈레톤 UI
+  - [x] `components/ui/error.tsx` - 에러 메시지
+  - [x] `components/ui/toast.tsx` - 토스트 알림 (shadcn/ui)
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] `Loading` 컴포넌트: 크기 조절 가능 (sm, md, lg), 전체 화면 모드 지원
+    - [x] `Skeleton` 컴포넌트: 기본 스켈레톤 + `CardSkeleton`, `ListSkeleton` 유틸리티 컴포넌트
+    - [x] `Error` 컴포넌트: 재시도 버튼 지원, 크기 조절 가능, `InlineError` 유틸리티 컴포넌트
+    - [x] `Toast` 컴포넌트: 성공/에러/정보/경고 타입 지원, 자동 사라짐 기능
+    - [x] `ToastProvider` 컴포넌트: 전역 토스트 상태 관리, `useToast` hook 제공
+    - [x] 모든 컴포넌트에 다크 모드 지원
+    - [x] 접근성 개선 (ARIA 라벨, role 속성)
+
+## Phase 2: 홈페이지 (`/`) - 관광지 목록
+
+- [x] 페이지 기본 구조
+  - [x] `app/page.tsx` 생성
+    - [x] 기본 레이아웃 (헤더, 메인, 푸터)
+      - [x] 헤더: Navbar 컴포넌트는 layout.tsx에서 이미 제공됨 (추가 작업 불필요)
+      - [x] 메인 영역: 관광지 목록 및 필터가 표시되는 메인 콘텐츠 영역
+        - [x] 최대 너비 제한 (max-w-7xl 또는 적절한 값)
+        - [x] 패딩 설정 (모바일: px-4, 데스크톱: px-6)
+        - [x] 최소 높이 설정 (min-h-[calc(100vh-4rem)] - Navbar 높이 제외)
+      - [x] 푸터: 선택 사항 (현재는 미구현, 필요 시 추가)
+    - [x] 반응형 컨테이너 설정
+      - [x] 모바일 우선 디자인 (Mobile First)
+      - [x] 브레이크포인트: sm (640px), md (768px), lg (1024px), xl (1280px)
+      - [x] 컨테이너 클래스: `container mx-auto px-4 sm:px-6 lg:px-8`
+      - [x] 그리드 레이아웃 준비 (필터 + 목록 + 지도)
+        - [x] 데스크톱: 필터(좌측) + 목록/지도(우측) 또는 필터(상단) + 목록/지도(하단)
+        - [x] 모바일: 세로 스택 레이아웃
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] Server Component로 구현 (Next.js 15 App Router 패턴 준수)
+    - [x] searchParams를 Promise로 처리 (await 사용)
+    - [x] 시맨틱 HTML 사용 (main, section 태그, ARIA 라벨)
+    - [x] Suspense를 사용한 로딩 상태 처리
+    - [x] TourListContent 컴포넌트로 데이터 로딩 분리
+    - [x] 초기 데이터 로딩 구현 (getAreaBasedList API 호출)
+    - [x] 에러 처리 (TourAPIError 클래스 활용)
+    - [x] 필터 영역 placeholder 추가 (Phase 2.3에서 구현 예정)
+    - [x] 지도 영역 placeholder 추가 (Phase 2.2에서 구현 예정)
+    - [x] 기본 관광지 목록 표시 (임시 UI, Phase 2.1에서 tour-list 컴포넌트로 교체 예정)
+  ***
+  - [x] 구현할 주요 컴포넌트/기능
+    - [x] Server Component로 구현 (`app/page.tsx`)
+      - [x] 초기 데이터 로딩은 Server Component에서 처리 (SEO 최적화)
+      - [x] 검색 파라미터는 `searchParams`로 받아서 처리
+    - [x] 레이아웃 구조
+      - [x] 필터 영역 (상단 또는 좌측 사이드바)
+      - [x] 목록/지도 영역 (메인 콘텐츠)
+        - [x] 데스크톱: 리스트(좌측 50%) + 지도(우측 50%) 분할
+        - [x] 모바일: 탭 형태로 리스트/지도 전환 (Phase 2.5에서 구현)
+    - [x] 상태 관리
+      - [x] URL 쿼리 파라미터를 통한 필터 상태 관리 (서버 컴포넌트)
+      - [x] 클라이언트 컴포넌트는 필요한 경우에만 사용 (필터 UI, 지도 등)
+    - [x] 초기 데이터 로딩
+      - [x] 기본 관광지 목록 로드 (필터 없이 전체 또는 기본 지역)
+      - [x] 로딩 상태 처리 (Skeleton UI 사용)
+      - [x] 에러 상태 처리 (Error 컴포넌트 사용)
+  ***
+  - [x] 특별히 주의할 요구사항이나 제약사항
+    - [x] Next.js 15 App Router 패턴 준수
+      - [x] `searchParams`는 Promise로 반환되므로 `await` 필요
+      - [x] Server Component 우선 사용, Client Component는 'use client' 명시
+    - [x] 반응형 디자인
+      - [x] 모바일 우선 접근 (Mobile First)
+      - [x] 터치 친화적 UI (버튼 크기, 간격 등)
+      - [ ] 지도는 모바일에서 별도 탭으로 전환 (Phase 2.5)
+    - [x] 성능 최적화
+      - [x] 이미지 최적화 (Next.js Image 컴포넌트 사용)
+      - [x] 초기 로딩 시 필요한 데이터만 로드
+      - [x] 무한 스크롤 또는 페이지네이션으로 데이터 분할 로드
+    - [x] 접근성
+      - [x] 시맨틱 HTML 사용 (main, section, article 등)
+      - [x] ARIA 라벨 추가
+      - [x] 키보드 네비게이션 지원
+    - [x] SEO 고려사항
+      - [x] Server Component 사용으로 초기 HTML에 콘텐츠 포함
+      - [x] 메타데이터는 layout.tsx에서 이미 설정됨
+    - [x] 기존 코드와의 통합
+      - [x] 현재 `app/page.tsx`는 보일러플레이트 템플릿이므로 완전히 교체 필요
+      - [x] Navbar는 layout.tsx에서 이미 제공되므로 중복 구현 불필요
+      - [x] ToastProvider는 layout.tsx에 이미 추가되어 있음
+    - [x] API 연동 준비
+      - [x] `lib/api/tour-api.ts`의 함수들 활용
+      - [x] 에러 처리는 `TourAPIError` 클래스 활용
+      - [x] 타입은 `lib/types/tour.ts`에서 import
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] 페이지네이션 컴포넌트 구현 (`components/ui/pagination.tsx`)
+      - [x] 페이지 번호 선택 방식
+      - [x] 이전/다음 버튼
+      - [x] 현재 페이지 하이라이트
+      - [x] 반응형 디자인 (모바일에서는 간소화)
+      - [x] 키보드 네비게이션 지원 (Tab, Enter, 화살표 키)
+      - [x] ARIA 라벨 추가
+      - [x] 버튼 최소 크기 44x44px (터치 친화적)
+    - [x] 무한 스크롤 훅 구현 (`hooks/use-infinite-scroll.ts`)
+      - [x] Intersection Observer 사용
+      - [x] 하단 로딩 인디케이터
+      - [x] 페이지당 10-20개 항목 로드
+      - [x] 에러 처리
+    - [x] TourList 컴포넌트 개선
+      - [x] 페이지네이션 모드와 무한 스크롤 모드 지원
+      - [x] 반응형 그리드 개선 (모바일 1열, 태블릿 2열, 데스크톱 3열)
+      - [x] 터치 친화적 카드 간격 조정 (모바일 16px, 데스크톱 24px)
+      - [x] ARIA 라벨 추가 (role="list", role="listitem", aria-live="polite")
+    - [x] TourCard 컴포넌트 접근성 개선
+      - [x] 키보드 네비게이션 지원 (Enter, Space 키)
+      - [x] 포커스 스타일 개선 (focus-visible:ring-2, ring-offset-2)
+      - [x] ARIA 라벨 보완 (상세한 설명 추가)
+      - [x] 터치 영역 확대 (최소 높이 200px)
+      - [x] 반응형 이미지 크기 (모바일 h-48, 데스크톱 h-52)
+    - [x] app/page.tsx 개선
+      - [x] 페이지네이션 파라미터 처리 (page 쿼리 파라미터)
+      - [x] 무한 스크롤 모드 지원 (mode 쿼리 파라미터)
+      - [x] 반응형 레이아웃 개선 (모바일 우선, 패딩 조정)
+      - [x] 접근성 개선 (시맨틱 HTML, ARIA 라벨)
+    - [x] 반응형 디자인 전반 개선
+      - [x] 모바일 우선 접근 (Mobile First)
+      - [x] 버튼 최소 크기 44x44px (터치 친화적)
+      - [x] 카드 간격 조정 (모바일 16px, 데스크톱 24px)
+      - [x] 폰트 크기 반응형 조정 (모바일 text-base, 데스크톱 text-lg)
+    - [x] 접근성 최종 점검
+      - [x] ARIA 라벨 확인 (모든 인터랙티브 요소)
+      - [x] 키보드 네비게이션 확인 (Tab, Enter, Space, 화살표 키)
+      - [x] 포커스 스타일 확인 (focus-visible)
+      - [x] 시맨틱 HTML 확인 (main, section, article, nav, role 속성)
+- [x] 관광지 목록 기능 (MVP 2.1)
+  - [x] `components/tour-card.tsx` 생성
+    - [x] 썸네일 이미지 (기본 이미지 fallback)
+    - [x] 관광지명
+    - [x] 주소 표시
+    - [x] 관광 타입 뱃지
+    - [x] 간단한 개요 (1-2줄)
+    - [x] 호버 효과 (scale, shadow)
+    - [x] 클릭 시 상세페이지 이동
+  - [x] `components/tour-list.tsx` 생성
+    - [x] 그리드 레이아웃 (반응형)
+    - [x] 카드 목록 표시
+    - [x] 로딩 상태 (Skeleton UI)
+    - [x] 빈 상태 처리
+  - [x] API 연동
+    - [x] `getAreaBasedList()` 호출
+    - [x] 데이터 파싱 및 표시
+    - [x] 에러 처리
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] TourCard 컴포넌트: Next.js Image 컴포넌트 사용 (이미지 최적화)
+    - [x] TourCard 컴포넌트: 이미지 로드 실패 시 fallback 처리
+    - [x] TourCard 컴포넌트: 관광 타입명 매핑 (한글 표시)
+    - [x] TourCard 컴포넌트: 접근성 개선 (aria-label, focus-visible 스타일)
+    - [x] TourList 컴포넌트: 결과 개수 표시 (총 관광지 수)
+    - [x] TourList 컴포넌트: 반응형 그리드 (모바일 1열, 태블릿 2열, 데스크톱 3열)
+    - [x] app/page.tsx: TourList 컴포넌트로 교체
+    - [x] app/page.tsx: Suspense fallback에 TourList isLoading 사용
+- [x] 필터 기능
+  - [x] `components/tour-filters.tsx` 생성
+    - [x] 지역 필터 (시/도 선택)
+      - [x] `getAreaCode()` API로 지역 목록 로드
+      - [x] 드롭다운 또는 버튼 그룹
+      - [x] "전체" 옵션
+    - [x] 관광 타입 필터
+      - [x] 관광지(12), 문화시설(14), 축제/행사(15), 여행코스(25), 레포츠(28), 숙박(32), 쇼핑(38), 음식점(39)
+      - [x] 다중 선택 가능
+      - [x] "전체" 옵션
+    - [ ] 반려동물 동반 가능 필터 (MVP 2.5)
+      - [ ] 토글 버튼
+      - [ ] 크기별 필터 (소형, 중형, 대형)
+    - [x] 정렬 옵션
+      - [x] 최신순 (modifiedtime)
+      - [x] 이름순 (가나다)
+    - [x] 필터 상태 관리 (URL 쿼리 파라미터 또는 상태)
+  - [x] 필터 적용 로직
+    - [x] 필터 변경 시 API 재호출
+    - [x] 필터 조합 처리
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] 지역 필터: 드롭다운 UI 구현 (버튼 클릭 시 목록 표시)
+    - [x] 관광 타입 필터: 체크박스 스타일 다중 선택 UI
+    - [x] 정렬 옵션: 버튼 그룹으로 구현 (최신순/이름순)
+    - [x] URL 쿼리 파라미터 상태 관리 (useRouter, useSearchParams)
+    - [x] 필터 변경 시 페이지 리셋 (page 파라미터 제거)
+    - [x] 반응형 디자인 (모바일 우선, flex-col sm:flex-row)
+    - [x] 접근성 개선 (role="group", role="listbox", role="option", aria-label)
+    - [x] 버튼 최소 크기 44x44px (터치 친화적)
+    - [x] 드롭다운 외부 클릭 시 닫기 기능
+- [x] 검색 기능 (MVP 2.3)
+  - [x] `components/tour-search.tsx` 생성
+    - [x] 검색창 UI (헤더 또는 메인 영역)
+    - [x] 검색 아이콘
+    - [x] 엔터 또는 버튼 클릭으로 검색
+    - [x] 검색 중 로딩 스피너
+  - [x] 검색 API 연동
+    - [x] `searchKeyword()` 호출
+    - [x] 검색 결과 표시
+    - [x] 검색 결과 개수 표시
+    - [x] 결과 없음 메시지
+  - [x] 검색 + 필터 조합
+    - [x] 키워드 + 지역 필터
+    - [x] 키워드 + 타입 필터
+    - [x] 모든 필터 동시 적용
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] 검색창: Input 컴포넌트 사용, 검색 아이콘 표시
+    - [x] 검색어 초기화 버튼 (X 아이콘)
+    - [x] 엔터 키 처리 (handleKeyDown)
+    - [x] 검색 중 로딩 스피너 (Loader2 아이콘)
+    - [x] URL 쿼리 파라미터 상태 관리 (keyword 파라미터)
+    - [x] 검색 시 페이지 리셋 (page 파라미터 제거)
+    - [x] 반응형 디자인 (모바일/데스크톱)
+    - [x] 접근성 개선 (role="search", aria-label)
+    - [x] 버튼 최소 크기 44x44px (터치 친화적)
+    - [x] app/page.tsx: 검색 시 searchKeyword API 사용, 필터와 조합 지원
+- [x] 네이버 지도 연동 (MVP 2.2)
+  - [x] `components/naver-map.tsx` 생성
+    - [x] Naver Maps API v3 초기화
+    - [x] 지도 컨테이너 설정
+    - [x] 초기 중심 좌표 설정
+    - [x] 줌 레벨 설정
+  - [x] 마커 표시
+    - [x] 관광지 목록을 마커로 표시
+    - [x] 좌표 변환 (KATEC → WGS84: mapx/mapy / 10000000)
+    - [x] 마커 클릭 시 인포윈도우
+      - [x] 관광지명
+      - [x] 간단한 설명
+      - [x] "상세보기" 버튼
+    - [x] 관광 타입별 마커 색상 구분 (선택 사항)
+  - [x] 지도-리스트 연동
+    - [x] 리스트 항목 클릭 → 지도 이동 및 마커 강조
+    - [ ] 리스트 항목 호버 → 마커 강조 (선택 사항)
+    - [x] 마커 클릭 → 리스트 항목 강조
+  - [x] 지도 컨트롤
+    - [x] 줌 인/아웃 버튼
+    - [ ] 지도 유형 선택 (일반/스카이뷰)
+    - [ ] 현재 위치 버튼 (선택 사항)
+  - [x] 반응형 레이아웃
+    - [x] 데스크톱: 리스트(좌측 50%) + 지도(우측 50%) 분할
+    - [x] 모바일: 탭 형태로 리스트/지도 전환
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] Naver Maps API v3 (NCP) 스크립트 동적 로드
+    - [x] 환경변수: NEXT_PUBLIC_NAVER_MAP_CLIENT_ID (ncpKeyId로 사용)
+    - [x] 좌표 변환 함수: convertKATECToWGS84() 구현
+    - [x] 마커 커스텀 아이콘 (원형, 선택 시 파란색, 기본 빨간색)
+    - [x] 인포윈도우 HTML 콘텐츠 (관광지명, 주소, 상세보기 버튼)
+    - [x] 지도 범위 자동 조정 (fitBounds)
+    - [x] 선택된 관광지 인포윈도우 자동 열기 및 지도 이동
+    - [x] 반응형 레이아웃: 데스크톱 그리드 분할, 모바일 세로 스택
+    - [x] 지도 로딩 상태 및 에러 처리
+    - [x] 접근성 개선 (aria-label)
+    - [x] app/page.tsx: MapContent 컴포넌트로 지도 데이터 로딩 분리
+- [x] 페이지네이션
+  - [x] 무한 스크롤 구현
+    - [x] Intersection Observer 사용
+    - [x] 하단 로딩 인디케이터
+    - [x] 페이지당 10-20개 항목
+  - [x] 또는 페이지 번호 선택 방식
+- [x] 최종 통합 및 스타일링
+  - [x] 모든 기능 통합 테스트
+  - [x] 반응형 디자인 확인 (모바일/태블릿/데스크톱)
+  - [x] 로딩 상태 개선
+  - [x] 에러 처리 개선
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] 필터, 검색, 지도 통합 완료
+    - [x] app/page.tsx: 검색 컴포넌트 추가 (메인 영역)
+    - [x] app/page.tsx: 필터 컴포넌트 추가
+    - [x] app/page.tsx: 지도 컴포넌트 추가 (데스크톱 분할, 모바일 세로 스택)
+    - [x] 검색 시 searchKeyword API 사용, 필터와 조합 지원
+    - [x] 필터 변경 시 URL 쿼리 파라미터 업데이트 및 API 재호출
+    - [x] 반응형 레이아웃: 데스크톱 2열 그리드 (리스트 50% + 지도 50%), 모바일 세로 스택
+    - [x] 접근성 확인 완료 (ARIA 라벨, 키보드 네비게이션, 시맨틱 HTML)
+    - [x] 로딩 상태: Suspense, Skeleton UI 사용
+    - [x] 에러 처리: TourAPIError 클래스 활용, Error 컴포넌트 표시
+
+## Phase 3: 상세페이지 (`/places/[contentId]`)
+
+- [x] 페이지 기본 구조
+  - [x] `app/places/[contentId]/page.tsx` 생성
+    - [x] 동적 라우팅 설정
+    - [x] 뒤로가기 버튼 (헤더)
+    - [x] 기본 레이아웃 구조
+    - [x] 라우팅 테스트
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] Next.js 15 App Router 패턴 준수 (params는 Promise, await 사용)
+    - [x] Server Component로 구현 (SEO 최적화)
+    - [x] 동적 라우팅: `/places/[contentId]` 경로 설정
+    - [x] contentId 파라미터 추출 및 검증
+    - [x] 뒤로가기 버튼: Link 컴포넌트 사용, ArrowLeft 아이콘, 접근성 개선
+    - [x] 기본 레이아웃: 단일 컬럼, 반응형 컨테이너, 섹션별 구분
+    - [x] 기본 데이터 로딩: getDetailCommon() API 호출
+    - [x] 로딩 상태: Suspense + DetailPageSkeleton 컴포넌트
+    - [x] 에러 처리: TourAPIError 클래스 활용, notFound() 404 처리
+    - [x] 반응형 디자인: 모바일 우선, 최소 높이 설정 (Navbar 높이 제외)
+    - [x] 접근성 개선: 시맨틱 HTML (main, section), ARIA 라벨
+    - [x] 라우팅 테스트: TourCard에서 `/places/${contentid}` 링크 확인, 404 처리 확인
+- [x] 기본 정보 섹션 (MVP 2.4.1)
+  - [x] `components/tour-detail/detail-info.tsx` 생성
+    - [x] `getDetailCommon()` API 연동
+    - [x] 관광지명 (대제목)
+    - [x] 대표 이미지 (크게 표시)
+    - [x] 주소 표시 및 복사 기능
+      - [x] 클립보드 API 사용
+      - [x] 복사 완료 토스트
+    - [x] 전화번호 (클릭 시 전화 연결)
+    - [x] 홈페이지 (링크)
+    - [x] 개요 (긴 설명문)
+    - [x] 관광 타입 및 카테고리 뱃지
+    - [x] 정보 없는 항목 숨김 처리
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] Client Component로 구현 (주소 복사 기능을 위해)
+    - [x] 관광지명: 대제목 스타일 (text-3xl sm:text-4xl font-bold)
+    - [x] 대표 이미지: Next.js Image 컴포넌트 사용, 반응형 크기 (h-64 sm:h-80 md:h-96), 이미지 로드 실패 처리
+    - [x] 주소 복사: 클립보드 API 사용, HTTPS 환경 확인, useToast hook으로 복사 완료 토스트, 복사 상태 표시 (Check 아이콘)
+    - [x] 전화번호: tel: 링크, Phone 아이콘, 접근성 개선
+    - [x] 홈페이지: 외부 링크 (target="\_blank", rel="noopener noreferrer"), ExternalLink 아이콘, URL 유효성 검증 및 정규화
+    - [x] 개요: whitespace-pre-line으로 줄바꿈 처리, prose 클래스로 텍스트 스타일링
+    - [x] 관광 타입 뱃지: CONTENT_TYPE 매핑 사용, 반응형 배치
+    - [x] 정보 없는 항목 숨김 처리: 조건부 렌더링, 빈 문자열 및 undefined/null 체크
+    - [x] 반응형 디자인: 모바일 우선, 버튼 최소 크기 44x44px, 섹션별 간격 조정
+    - [x] 접근성 개선: 시맨틱 HTML (section), ARIA 라벨, 키보드 네비게이션 지원
+    - [x] app/places/[contentId]/page.tsx 통합: 기존 임시 코드를 DetailInfo 컴포넌트로 교체
+- [ ] 운영 정보 섹션 (MVP 2.4.2)
+  - [ ] `components/tour-detail/detail-intro.tsx` 생성
+    - [ ] `getDetailIntro()` API 연동
+    - [ ] 운영시간/개장시간
+    - [ ] 휴무일
+    - [ ] 이용요금
+    - [ ] 주차 가능 여부
+    - [ ] 수용인원
+    - [ ] 체험 프로그램
+    - [ ] 유모차/반려동물 동반 가능 여부
+    - [ ] 정보 없는 항목 숨김 처리
+- [ ] 이미지 갤러리 (MVP 2.4.3)
+  - [ ] `components/tour-detail/detail-gallery.tsx` 생성
+    - [ ] `getDetailImage()` API 연동
+    - [ ] 대표 이미지 + 서브 이미지들
+    - [ ] 이미지 슬라이드 기능 (Swiper 또는 캐러셀)
+    - [ ] 이미지 클릭 시 전체화면 모달
+    - [ ] 이미지 없으면 기본 이미지
+    - [ ] Next.js Image 컴포넌트 사용 (최적화)
+- [ ] 지도 섹션 (MVP 2.4.4)
+  - [ ] `components/tour-detail/detail-map.tsx` 생성
+    - [ ] 해당 관광지 위치 표시
+    - [ ] 마커 1개 표시
+    - [ ] "길찾기" 버튼
+      - [ ] 네이버 지도 앱/웹 연동
+      - [ ] URL: `https://map.naver.com/v5/directions/{좌표}`
+    - [ ] 좌표 정보 표시 (선택 사항)
+- [ ] 공유 기능 (MVP 2.4.5)
+  - [ ] `components/tour-detail/share-button.tsx` 생성
+    - [ ] URL 복사 기능
+      - [ ] `navigator.clipboard.writeText()` 사용
+      - [ ] HTTPS 환경 확인
+    - [ ] 복사 완료 토스트 메시지
+    - [ ] 공유 아이콘 버튼 (Share/Link 아이콘)
+  - [ ] Open Graph 메타태그
+    - [ ] `app/places/[contentId]/page.tsx`에 Metadata 생성
+    - [ ] `og:title` - 관광지명
+    - [ ] `og:description` - 관광지 설명 (100자 이내)
+    - [ ] `og:image` - 대표 이미지 (1200x630 권장)
+    - [ ] `og:url` - 상세페이지 URL
+    - [ ] `og:type` - "website"
+- [ ] 북마크 기능 (MVP 2.4.5)
+  - [ ] `components/bookmarks/bookmark-button.tsx` 생성
+    - [ ] 별 아이콘 (채워짐/비어있음)
+    - [ ] 북마크 상태 확인 (Supabase 조회)
+    - [ ] 북마크 추가/제거 기능
+    - [ ] 인증된 사용자 확인 (Clerk)
+    - [ ] 로그인하지 않은 경우: 로그인 유도 또는 localStorage 임시 저장
+  - [ ] Supabase 연동
+    - [ ] `lib/api/supabase-api.ts` 생성
+      - [ ] `getBookmark()` - 북마크 조회
+      - [ ] `addBookmark()` - 북마크 추가
+      - [ ] `removeBookmark()` - 북마크 제거
+      - [ ] `getUserBookmarks()` - 사용자 북마크 목록
+    - [ ] `bookmarks` 테이블 사용 (db.sql 참고)
+      - [ ] `user_id` (users 테이블 참조)
+      - [ ] `content_id` (한국관광공사 API contentid)
+      - [ ] UNIQUE 제약 (user_id, content_id)
+  - [ ] 상세페이지에 북마크 버튼 추가
+- [ ] 반려동물 정보 섹션 (MVP 2.5)
+  - [ ] `components/tour-detail/detail-pet-tour.tsx` 생성
+    - [ ] `getDetailPetTour()` API 연동
+    - [ ] 반려동물 동반 가능 여부 표시
+    - [ ] 반려동물 크기 제한 정보
+    - [ ] 반려동물 입장 가능 장소 (실내/실외)
+    - [ ] 반려동물 동반 추가 요금
+    - [ ] 반려동물 전용 시설 정보
+    - [ ] 아이콘 및 뱃지 디자인 (🐾)
+    - [ ] 주의사항 강조 표시
+- [ ] 추천 관광지 섹션 (선택 사항)
+  - [ ] 같은 지역 또는 타입의 다른 관광지 추천
+  - [ ] 카드 형태로 표시
+- [ ] 최종 통합 및 스타일링
+  - [ ] 모든 섹션 통합
+  - [ ] 반응형 디자인 확인
+  - [ ] 모바일 최적화
+  - [ ] 접근성 확인 (ARIA 라벨, 키보드 네비게이션)
+
+## Phase 4: 통계 대시보드 페이지 (`/stats`)
+
+- [ ] 페이지 기본 구조
+  - [ ] `app/stats/page.tsx` 생성
+    - [ ] 기본 레이아웃 구조
+    - [ ] 반응형 레이아웃 설정 (모바일 우선)
+    - [ ] Server Component로 구현
+- [ ] 통계 데이터 수집
+  - [ ] `lib/api/stats-api.ts` 생성
+    - [ ] `getRegionStats()` - 지역별 관광지 개수 집계
+      - [ ] `areaBasedList2` API로 각 지역별 totalCount 조회
+      - [ ] 지역 코드별로 API 호출
+    - [ ] `getTypeStats()` - 타입별 관광지 개수 집계
+      - [ ] `areaBasedList2` API로 각 타입별 totalCount 조회
+      - [ ] contentTypeId별로 API 호출
+    - [ ] `getStatsSummary()` - 전체 통계 요약
+      - [ ] 전체 관광지 수
+      - [ ] Top 3 지역
+      - [ ] Top 3 타입
+      - [ ] 마지막 업데이트 시간
+    - [ ] 병렬 API 호출로 성능 최적화
+    - [ ] 에러 처리 및 재시도 로직
+    - [ ] 데이터 캐싱 (revalidate: 3600)
+- [ ] 통계 요약 카드
+  - [ ] `components/stats/stats-summary.tsx` 생성
+    - [ ] 전체 관광지 수 표시
+    - [ ] Top 3 지역 표시 (카드 형태)
+    - [ ] Top 3 타입 표시 (카드 형태)
+    - [ ] 마지막 업데이트 시간 표시
+    - [ ] 로딩 상태 (Skeleton UI)
+    - [ ] 카드 레이아웃 디자인
+- [ ] 지역별 분포 차트 (Bar Chart)
+  - [ ] `components/stats/region-chart.tsx` 생성
+    - [ ] shadcn/ui Chart 컴포넌트 설치 (Bar)
+    - [ ] recharts 기반 Bar Chart 구현
+    - [ ] X축: 지역명 (서울, 부산, 제주 등)
+    - [ ] Y축: 관광지 개수
+    - [ ] 상위 10개 지역 표시 (또는 전체)
+    - [ ] 바 클릭 시 해당 지역 목록 페이지로 이동
+    - [ ] 호버 시 정확한 개수 표시
+    - [ ] 다크/라이트 모드 지원
+    - [ ] 반응형 디자인
+    - [ ] 로딩 상태
+    - [ ] 접근성 (ARIA 라벨, 키보드 네비게이션)
+- [ ] 타입별 분포 차트 (Donut Chart)
+  - [ ] `components/stats/type-chart.tsx` 생성
+    - [ ] shadcn/ui Chart 컴포넌트 설치 (Pie/Donut)
+    - [ ] recharts 기반 Donut Chart 구현
+    - [ ] 타입별 비율 (백분율)
+    - [ ] 타입별 개수 표시
+    - [ ] 섹션 클릭 시 해당 타입 목록 페이지로 이동
+    - [ ] 호버 시 타입명, 개수, 비율 표시
+    - [ ] 다크/라이트 모드 지원
+    - [ ] 반응형 디자인
+    - [ ] 로딩 상태
+    - [ ] 접근성 (ARIA 라벨)
+- [ ] 페이지 통합
+  - [ ] `app/stats/page.tsx`에 모든 컴포넌트 통합
+    - [ ] 통계 요약 카드 (상단)
+    - [ ] 지역별 분포 차트 (중단)
+    - [ ] 타입별 분포 차트 (하단)
+  - [ ] 에러 처리 (에러 메시지 + 재시도 버튼)
+  - [ ] 네비게이션에 통계 페이지 링크 추가
+  - [ ] 최종 페이지 확인
+
+## Phase 5: 북마크 페이지 (`/bookmarks`) - 선택 사항
+
+- [ ] Supabase 설정 확인
+  - [ ] `bookmarks` 테이블 확인 (db.sql 참고)
+    - [ ] `users` 테이블과의 관계 확인
+    - [ ] 인덱스 확인 (user_id, content_id, created_at)
+    - [ ] RLS 비활성화 확인 (개발 환경)
+- [ ] 북마크 목록 페이지
+  - [ ] `app/bookmarks/page.tsx` 생성
+    - [ ] 인증된 사용자만 접근 가능
+    - [ ] 로그인하지 않은 경우 로그인 유도
+  - [ ] `components/bookmarks/bookmark-list.tsx` 생성
+    - [ ] 사용자 북마크 목록 조회 (`getUserBookmarks()`)
+    - [ ] 카드 레이아웃 (홈페이지와 동일한 tour-card 사용)
+    - [ ] 빈 상태 처리 (북마크 없을 때)
+    - [ ] 로딩 상태 (Skeleton UI)
+- [ ] 북마크 관리 기능
+  - [ ] 정렬 옵션
+    - [ ] 최신순 (created_at DESC)
+    - [ ] 이름순 (가나다순)
+    - [ ] 지역별
+  - [ ] 일괄 삭제 기능
+    - [ ] 체크박스 선택
+    - [ ] 선택 항목 삭제
+    - [ ] 확인 다이얼로그
+  - [ ] 개별 삭제 기능
+    - [ ] 각 카드에 삭제 버튼
+- [ ] 페이지 통합 및 스타일링
+  - [ ] 반응형 디자인 확인
+  - [ ] 최종 페이지 확인
+
+## Phase 6: 최적화 & 배포
+
+- [ ] 이미지 최적화
+  - [ ] `next.config.ts` 외부 도메인 설정
+    - [ ] 한국관광공사 이미지 도메인 추가
+    - [ ] 네이버 지도 이미지 도메인 추가
+  - [ ] Next.js Image 컴포넌트 사용 확인
+    - [ ] priority 속성 (above-the-fold)
+    - [ ] lazy loading (below-the-fold)
+    - [ ] responsive sizes 설정
+- [ ] 전역 에러 핸들링
+  - [ ] `app/error.tsx` 생성
+  - [ ] `app/global-error.tsx` 생성
+  - [ ] API 에러 처리 개선
+- [ ] 404 페이지
+  - [ ] `app/not-found.tsx` 생성
+    - [ ] 사용자 친화적인 메시지
+    - [ ] 홈으로 돌아가기 버튼
+- [ ] SEO 최적화
+  - [ ] 메타태그 설정 (`app/layout.tsx`)
+    - [ ] 기본 title, description
+    - [ ] Open Graph 태그
+    - [ ] Twitter Card 태그
+  - [ ] `app/sitemap.ts` 생성
+    - [ ] 동적 sitemap 생성 (관광지 상세페이지 포함)
+  - [ ] `app/robots.ts` 생성
+- [ ] 성능 최적화
+  - [ ] Lighthouse 점수 측정 (목표: > 80)
+  - [ ] 코드 분할 확인
+  - [ ] 불필요한 번들 제거
+  - [ ] API 응답 캐싱 전략 확인
+- [ ] 환경변수 보안 검증
+  - [ ] 모든 필수 환경변수 확인
+  - [ ] `.env.example` 업데이트
+  - [ ] 프로덕션 환경변수 설정 가이드 작성
+- [ ] 배포 준비
+  - [ ] Vercel 배포 설정
+  - [ ] 환경변수 설정 (Vercel 대시보드)
+  - [ ] 빌드 테스트 (`pnpm build`)
+  - [ ] 프로덕션 배포 및 테스트
+
+## 추가 작업 (선택 사항)
+
+- [ ] 다크 모드 지원
+  - [ ] 테마 전환 기능
+  - [ ] 모든 컴포넌트 다크 모드 스타일 적용
+- [ ] PWA 지원
+  - [ ] `app/manifest.ts` 생성
+  - [ ] Service Worker 설정
+  - [ ] 오프라인 지원
+- [ ] 접근성 개선
+  - [ ] ARIA 라벨 추가
+  - [ ] 키보드 네비게이션 개선
+  - [ ] 색상 대비 확인 (WCAG AA)
+- [ ] 성능 모니터링
+  - [ ] Web Vitals 측정
+  - [ ] 에러 로깅 (Sentry 등)
+- [ ] 사용자 피드백
+  - [ ] 피드백 수집 기능
+  - [ ] 버그 리포트 기능
