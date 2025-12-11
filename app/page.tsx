@@ -32,7 +32,10 @@ import { Error } from "@/components/ui/error";
 import { TourList } from "@/components/tour-list";
 import { TourFilters } from "@/components/tour-filters";
 import { TourSearch } from "@/components/tour-search";
-import { NaverMap } from "@/components/naver-map";
+import { MapContentClient } from "@/components/map-content-client";
+import { TourHoverProvider } from "@/components/providers/tour-hover-provider";
+import { DesktopListMapWrapper } from "@/components/desktop-list-map-wrapper";
+import { MobileMapTabs } from "@/components/mobile-map-tabs";
 import type { TourListResponse } from "@/lib/types/tour";
 
 interface HomePageProps {
@@ -54,13 +57,11 @@ async function MapContent({
   contentTypeId,
   keyword,
   page,
-  mode,
 }: {
   areaCode?: string;
   contentTypeId?: string | string[];
   keyword?: string;
   page?: string;
-  mode?: string;
 }) {
   try {
     const pageNo = Math.max(1, parseInt(page || "1", 10));
@@ -101,8 +102,9 @@ async function MapContent({
       );
     }
 
-    return <NaverMap tours={data.items} />;
+    return <MapContentClient tours={data.items} areaCode={areaCode} />;
   } catch (error) {
+    console.error("MapContent error:", error);
     return (
       <div className="h-full bg-muted rounded-lg flex items-center justify-center">
         <p className="text-sm text-muted-foreground">지도를 불러올 수 없습니다.</p>
@@ -121,12 +123,14 @@ async function TourListContent({
   keyword,
   page,
   mode,
+  onTourHover,
 }: {
   areaCode?: string;
   contentTypeId?: string | string[];
   keyword?: string;
   page?: string;
   mode?: string;
+  onTourHover?: (tourId: string | null) => void;
 }) {
   try {
     // 페이지 번호 파싱 (1부터 시작)
@@ -167,6 +171,7 @@ async function TourListContent({
       <TourList
         data={data}
         mode={mode === "infinite" ? "infinite" : "pagination"}
+        onTourHover={onTourHover}
       />
     );
   } catch (error) {
@@ -233,43 +238,58 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
 
         {/* 데스크톱: 리스트 + 지도 분할 레이아웃 */}
-        <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6">
-          <div>
-            <Suspense fallback={<TourList isLoading />}>
-              <TourListContent
-                areaCode={areaCode}
-                contentTypeId={contentTypeId}
-                keyword={keyword}
-                page={page}
-                mode={displayMode}
-              />
-            </Suspense>
-          </div>
-          <div className="sticky top-20 h-[calc(100vh-8rem)]">
-            <Suspense fallback={<div className="h-full bg-muted rounded-lg animate-pulse" />}>
-              <MapContent
-                areaCode={areaCode}
-                contentTypeId={contentTypeId}
-                keyword={keyword}
-                page={page}
-                mode={displayMode}
-              />
-            </Suspense>
-          </div>
-        </div>
+        <TourHoverProvider>
+          <DesktopListMapWrapper
+            listContent={
+              <Suspense fallback={<TourList isLoading />}>
+                <TourListContent
+                  areaCode={areaCode}
+                  contentTypeId={contentTypeId}
+                  keyword={keyword}
+                  page={page}
+                  mode={displayMode}
+                />
+              </Suspense>
+            }
+            mapContent={
+              <Suspense fallback={<div className="h-full bg-muted rounded-lg animate-pulse" />}>
+                <MapContent
+                  areaCode={areaCode}
+                  contentTypeId={contentTypeId}
+                  keyword={keyword}
+                  page={page}
+                />
+              </Suspense>
+            }
+          />
+        </TourHoverProvider>
 
-        {/* 모바일/태블릿: 리스트만 표시 (지도는 TourListContent 내부에서 표시) */}
-        <div className="lg:hidden">
-          <Suspense fallback={<TourList isLoading />}>
-            <TourListContent
-              areaCode={areaCode}
-              contentTypeId={contentTypeId}
-              keyword={keyword}
-              page={page}
-              mode={displayMode}
-            />
-          </Suspense>
-        </div>
+        {/* 모바일/태블릿: 탭 형태로 리스트/지도 전환 */}
+        <TourHoverProvider>
+          <MobileMapTabs
+            listContent={
+              <Suspense fallback={<TourList isLoading />}>
+                <TourListContent
+                  areaCode={areaCode}
+                  contentTypeId={contentTypeId}
+                  keyword={keyword}
+                  page={page}
+                  mode={displayMode}
+                />
+              </Suspense>
+            }
+            mapContent={
+              <Suspense fallback={<div className="h-[400px] bg-muted rounded-lg animate-pulse" />}>
+                <MapContent
+                  areaCode={areaCode}
+                  contentTypeId={contentTypeId}
+                  keyword={keyword}
+                  page={page}
+                />
+              </Suspense>
+            }
+          />
+        </TourHoverProvider>
       </section>
     </main>
   );

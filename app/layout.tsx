@@ -5,17 +5,22 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import { SyncUserProvider } from "@/components/providers/sync-user-provider";
 import { ToastProvider } from "@/components/providers/toast-provider";
+import { WebVitals } from "@/components/web-vitals";
 import { koreanLocalization } from "@/lib/clerk/localization";
 import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap", // 폰트 로딩 중 텍스트 표시 (FOUT 방지)
+  preload: true, // 폰트 preload 활성화
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap", // 폰트 로딩 중 텍스트 표시 (FOUT 방지)
+  preload: false, // 모노 폰트는 선택적이므로 preload 비활성화
 });
 
 export const metadata: Metadata = {
@@ -54,6 +59,7 @@ export default function RootLayout({
         >
           <SyncUserProvider>
             <ToastProvider>
+              <WebVitals />
               <Navbar />
               {children}
             </ToastProvider>

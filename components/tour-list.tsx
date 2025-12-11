@@ -24,12 +24,14 @@
 
 "use client";
 
+import { useState, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { TourCard } from "@/components/tour-card";
 import { CardSkeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/ui/pagination";
 import { Loading } from "@/components/ui/loading";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { useTourHoverSafe } from "@/components/providers/tour-hover-provider";
 import type { TourItem, TourListResponse } from "@/lib/types/tour";
 import { cn } from "@/lib/utils";
 
@@ -67,6 +69,11 @@ interface TourListProps {
    * 추가 클래스명
    */
   className?: string;
+  /**
+   * 호버된 관광지 ID 변경 핸들러 (선택 사항)
+   * 지도 연동을 위해 사용
+   */
+  onTourHover?: (tourId: string | null) => void;
 }
 
 /**
@@ -81,19 +88,36 @@ export function TourList({
   onPageChange,
   mode = "pagination",
   className,
+  onTourHover,
 }: TourListProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  
+  // Context에서 호버 상태 가져오기 (있는 경우)
+  // useTourHoverSafe는 Context가 없어도 에러를 던지지 않으므로
+  // 항상 안전하게 호출할 수 있습니다.
+  const hoverContext = useTourHoverSafe();
+  const setHoveredTourId = hoverContext?.setHoveredTourId;
 
-  // 페이지 변경 핸들러 (URL 쿼리 파라미터 업데이트)
-  const handlePageChange = (newPage: number) => {
+  // 호버 핸들러 (useCallback으로 최적화)
+  const handleTourHover = useCallback((tourId: string | null) => {
+    if (setHoveredTourId) {
+      setHoveredTourId(tourId);
+    }
+    if (onTourHover) {
+      onTourHover(tourId);
+    }
+  }, [setHoveredTourId, onTourHover]);
+
+  // 페이지 변경 핸들러 (useCallback으로 최적화)
+  const handlePageChange = useCallback((newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(newPage));
     router.push(`/?${params.toString()}`);
-  };
+  }, [searchParams, router]);
 
   // 무한 스크롤 훅
-  const { sentinelRef, loadMore } = useInfiniteScroll({
+  const { sentinelRef } = useInfiniteScroll({
     onLoadMore: onLoadMore || (() => {}),
     isLoading: isLoadingMore,
     hasMore: data ? data.items.length < data.totalCount : false,
@@ -101,11 +125,13 @@ export function TourList({
     enabled: mode === "infinite" && !!onLoadMore,
   });
 
-  // 현재 페이지 계산 (페이지네이션용)
-  const currentPage = data?.pageNo || 1;
-  const totalPages = data
-    ? Math.ceil(data.totalCount / (data.numOfRows || 10))
-    : 1;
+  // 현재 페이지 계산 (페이지네이션용) - useMemo로 최적화
+  const currentPage = useMemo(() => data?.pageNo || 1, [data?.pageNo]);
+  const totalPages = useMemo(() => {
+    return data
+      ? Math.ceil(data.totalCount / (data.numOfRows || 10))
+      : 1;
+  }, [data?.totalCount, data?.numOfRows]);
 
   // 로딩 상태
   if (isLoading) {
@@ -164,11 +190,21 @@ export function TourList({
         role="list"
         aria-label="관광지 목록"
       >
-        {data.items.map((tour: TourItem) => (
-          <div key={tour.contentid} role="listitem">
-            <TourCard tour={tour} />
-          </div>
-        ))}
+        {data.items.map((tour: TourItem, index: number) => {
+          // 첫 번째 페이지의 첫 6개 카드에만 priority 설정 (above-the-fold)
+          // 3열 그리드 기준으로 첫 2행 (6개)에 priority 적용
+          const isPriority = currentPage === 1 && index < 6;
+          
+          return (
+            <div key={tour.contentid} role="listitem">
+              <TourCard
+                tour={tour}
+                onTourHover={handleTourHover}
+                priority={isPriority}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {/* 무한 스크롤 모드: 하단 로딩 인디케이터 */}

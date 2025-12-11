@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server-standard";
 import { Suspense } from "react";
+import Link from "next/link";
 
 /**
  * Supabase 데이터 조회 예제 페이지
@@ -92,12 +93,12 @@ export default function Instruments() {
   return (
     <div className="max-w-4xl mx-auto p-8">
       <div className="mb-8">
-        <a
+        <Link
           href="/"
           className="text-blue-600 hover:underline mb-4 inline-block"
         >
           ← 홈으로 돌아가기
-        </a>
+        </Link>
         <h1 className="text-4xl font-bold mb-2">Supabase 데이터 조회 예제</h1>
         <p className="text-gray-600">
           Supabase 공식 문서의 Next.js 퀵스타트 패턴을 따라 구현한 예제입니다.

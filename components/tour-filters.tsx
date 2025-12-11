@@ -21,7 +21,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -95,8 +95,8 @@ export function TourFilters({ className }: TourFiltersProps) {
     loadAreaCodes();
   }, []);
 
-  // 필터 업데이트 함수
-  const updateFilters = (
+  // 필터 업데이트 함수 (useCallback으로 최적화)
+  const updateFilters = useCallback((
     updates: {
       areaCode?: string;
       contentTypeId?: string[];
@@ -138,39 +138,40 @@ export function TourFilters({ className }: TourFiltersProps) {
     }
 
     router.push(`/?${params.toString()}`);
-  };
+  }, [searchParams, router]);
 
-  // 지역 필터 변경
-  const handleAreaChange = (code: string) => {
+  // 지역 필터 변경 (useCallback으로 최적화)
+  const handleAreaChange = useCallback((code: string) => {
     updateFilters({ areaCode: code === "all" ? "" : code });
     setIsAreaDropdownOpen(false);
-  };
+  }, [updateFilters]);
 
-  // 관광 타입 필터 토글
-  const handleTypeToggle = (typeId: string) => {
+  // 관광 타입 필터 토글 (useCallback으로 최적화)
+  const handleTypeToggle = useCallback((typeId: string) => {
     const newTypes = currentContentTypeIds.includes(typeId)
       ? currentContentTypeIds.filter((id) => id !== typeId)
       : [...currentContentTypeIds, typeId];
 
     updateFilters({ contentTypeId: newTypes });
-  };
+  }, [currentContentTypeIds, updateFilters]);
 
-  // 관광 타입 필터 전체 해제
-  const handleTypeClear = () => {
+  // 관광 타입 필터 전체 해제 (useCallback으로 최적화)
+  const handleTypeClear = useCallback(() => {
     updateFilters({ contentTypeId: [] });
     setIsTypeDropdownOpen(false);
-  };
+  }, [updateFilters]);
 
-  // 정렬 옵션 변경
-  const handleSortChange = (sort: SortOption) => {
+  // 정렬 옵션 변경 (useCallback으로 최적화)
+  const handleSortChange = useCallback((sort: SortOption) => {
     updateFilters({ sort });
-  };
+  }, [updateFilters]);
 
-  // 선택된 지역명
-  const selectedAreaName =
-    currentAreaCode && areaCodes.length > 0
+  // 선택된 지역명 (useMemo로 최적화)
+  const selectedAreaName = useMemo(() => {
+    return currentAreaCode && areaCodes.length > 0
       ? areaCodes.find((area) => area.code === currentAreaCode)?.name || "전체"
       : "전체";
+  }, [currentAreaCode, areaCodes]);
 
   return (
     <div
@@ -309,7 +310,7 @@ export function TourFilters({ className }: TourFiltersProps) {
                     </button>
                   </div>
                 )}
-                {Object.entries(CONTENT_TYPE).map(([key, value]) => (
+                {Object.entries(CONTENT_TYPE).map(([, value]) => (
                   <button
                     key={value}
                     className={cn(

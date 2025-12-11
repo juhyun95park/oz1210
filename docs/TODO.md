@@ -335,20 +335,57 @@
     - [x] 관광 타입별 마커 색상 구분 (선택 사항)
   - [x] 지도-리스트 연동
     - [x] 리스트 항목 클릭 → 지도 이동 및 마커 강조
-    - [ ] 리스트 항목 호버 → 마커 강조 (선택 사항)
+    - [x] 리스트 항목 호버 → 마커 강조 (선택 사항)
     - [x] 마커 클릭 → 리스트 항목 강조
   - [x] 지도 컨트롤
     - [x] 줌 인/아웃 버튼
-    - [ ] 지도 유형 선택 (일반/스카이뷰)
-    - [ ] 현재 위치 버튼 (선택 사항)
+    - [x] 지도 유형 선택 (일반/스카이뷰)
+    - [x] 현재 위치 버튼 (선택 사항)
   - [x] 반응형 레이아웃
     - [x] 데스크톱: 리스트(좌측 50%) + 지도(우측 50%) 분할
     - [x] 모바일: 탭 형태로 리스트/지도 전환
+  ***
+  - [x] 추가 개발 사항 (plan 모드 build)
+    - [x] 지도 높이를 PRD 요구사항에 맞게 조정 (400px 모바일, 600px 데스크톱)
+    - [x] 모바일 탭 전환 기능 구현 (`components/mobile-map-tabs.tsx` 생성)
+      - [x] 리스트/지도 탭 전환 UI 구현
+      - [x] 접근성 개선 (ARIA 라벨, 키보드 네비게이션)
+      - [x] `app/page.tsx`에서 모바일 레이아웃에 탭 컴포넌트 적용
+    - [x] 관광 타입별 마커 색상 구분 기능 추가
+      - [x] `MARKER_COLOR_BY_TYPE` 매핑 객체 생성 (8가지 타입별 색상)
+      - [x] 마커 색상 결정 로직에 타입별 색상 추가 (우선순위: 선택 > 호버 > 타입별 > 기본)
+    - [x] 인포윈도우에 간단한 설명 추가
+      - [x] 카테고리 정보(cat1, cat2, cat3)를 활용한 간단한 설명 생성
+      - [x] 인포윈도우 HTML에 설명 추가 (주소와 구분하여 표시)
+    - [x] 선택된 지역의 중심 좌표를 초기 중심으로 사용하도록 개선
+      - [x] `REGION_CENTER_COORDS` 매핑 객체 생성 (17개 지역별 중심 좌표)
+      - [x] `NaverMap` 컴포넌트에 `areaCode` prop 추가
+      - [x] 초기 중심 좌표 결정 로직 개선 (우선순위: 선택된 지역 > 첫 번째 관광지 > 서울)
+      - [x] `MapContentClient`와 `MapContent`에 `areaCode` 전달
   ***
   - [x] 추가 구현 사항 (plan 모드 build)
     - [x] Naver Maps API v3 (NCP) 스크립트 동적 로드
     - [x] 환경변수: NEXT_PUBLIC_NAVER_MAP_CLIENT_ID (ncpKeyId로 사용)
     - [x] 좌표 변환 함수: convertKATECToWGS84() 구현
+    - [x] 리스트 항목 호버 → 마커 강조 기능 구현
+      - [x] TourCard 컴포넌트에 onMouseEnter/onMouseLeave 이벤트 핸들러 추가
+      - [x] TourList 컴포넌트에 호버 상태 관리 추가
+      - [x] NaverMap 컴포넌트에 hoveredTourId prop 추가 및 호버된 마커 노란색으로 강조 표시
+      - [x] TourHoverProvider Context API로 호버 상태 공유
+      - [x] DesktopListMapWrapper 컴포넌트로 데스크톱 레이아웃 관리
+    - [x] 지도 유형 선택 기능 구현
+      - [x] NaverMap 컴포넌트에 mapTypeId 상태 추가 (normal/satellite)
+      - [x] 지도 유형 전환 버튼 UI 추가 (Map/Satellite 아이콘)
+      - [x] 버튼 위치: 지도 우측 상단 (줌 컨트롤 아래)
+      - [x] 접근성 개선 (aria-label, 키보드 네비게이션)
+    - [x] 현재 위치 버튼 기능 구현
+      - [x] Geolocation API를 사용한 현재 위치 가져오기
+      - [x] 현재 위치 마커 표시 (초록색, 32px 원형)
+      - [x] 지도를 현재 위치로 이동 (zoom: 15)
+      - [x] 권한 요청 및 에러 처리 (권한 거부, 위치 정보 없음 등)
+      - [x] 버튼 위치: 지도 우측 상단 (지도 유형 버튼 아래)
+      - [x] 로딩 상태 표시 (위치 가져오는 중 스피너)
+      - [x] Toast 메시지로 성공/에러 알림
     - [x] 마커 커스텀 아이콘 (원형, 선택 시 파란색, 기본 빨간색)
     - [x] 인포윈도우 HTML 콘텐츠 (관광지명, 주소, 상세보기 버튼)
     - [x] 지도 범위 자동 조정 (fitBounds)
@@ -430,145 +467,380 @@
     - [x] 반응형 디자인: 모바일 우선, 버튼 최소 크기 44x44px, 섹션별 간격 조정
     - [x] 접근성 개선: 시맨틱 HTML (section), ARIA 라벨, 키보드 네비게이션 지원
     - [x] app/places/[contentId]/page.tsx 통합: 기존 임시 코드를 DetailInfo 컴포넌트로 교체
-- [ ] 운영 정보 섹션 (MVP 2.4.2)
-  - [ ] `components/tour-detail/detail-intro.tsx` 생성
-    - [ ] `getDetailIntro()` API 연동
-    - [ ] 운영시간/개장시간
-    - [ ] 휴무일
-    - [ ] 이용요금
-    - [ ] 주차 가능 여부
-    - [ ] 수용인원
-    - [ ] 체험 프로그램
-    - [ ] 유모차/반려동물 동반 가능 여부
-    - [ ] 정보 없는 항목 숨김 처리
-- [ ] 이미지 갤러리 (MVP 2.4.3)
-  - [ ] `components/tour-detail/detail-gallery.tsx` 생성
-    - [ ] `getDetailImage()` API 연동
-    - [ ] 대표 이미지 + 서브 이미지들
-    - [ ] 이미지 슬라이드 기능 (Swiper 또는 캐러셀)
-    - [ ] 이미지 클릭 시 전체화면 모달
-    - [ ] 이미지 없으면 기본 이미지
-    - [ ] Next.js Image 컴포넌트 사용 (최적화)
-- [ ] 지도 섹션 (MVP 2.4.4)
-  - [ ] `components/tour-detail/detail-map.tsx` 생성
-    - [ ] 해당 관광지 위치 표시
-    - [ ] 마커 1개 표시
-    - [ ] "길찾기" 버튼
-      - [ ] 네이버 지도 앱/웹 연동
-      - [ ] URL: `https://map.naver.com/v5/directions/{좌표}`
-    - [ ] 좌표 정보 표시 (선택 사항)
-- [ ] 공유 기능 (MVP 2.4.5)
-  - [ ] `components/tour-detail/share-button.tsx` 생성
-    - [ ] URL 복사 기능
-      - [ ] `navigator.clipboard.writeText()` 사용
-      - [ ] HTTPS 환경 확인
-    - [ ] 복사 완료 토스트 메시지
-    - [ ] 공유 아이콘 버튼 (Share/Link 아이콘)
-  - [ ] Open Graph 메타태그
-    - [ ] `app/places/[contentId]/page.tsx`에 Metadata 생성
-    - [ ] `og:title` - 관광지명
-    - [ ] `og:description` - 관광지 설명 (100자 이내)
-    - [ ] `og:image` - 대표 이미지 (1200x630 권장)
-    - [ ] `og:url` - 상세페이지 URL
-    - [ ] `og:type` - "website"
-- [ ] 북마크 기능 (MVP 2.4.5)
-  - [ ] `components/bookmarks/bookmark-button.tsx` 생성
-    - [ ] 별 아이콘 (채워짐/비어있음)
-    - [ ] 북마크 상태 확인 (Supabase 조회)
-    - [ ] 북마크 추가/제거 기능
-    - [ ] 인증된 사용자 확인 (Clerk)
-    - [ ] 로그인하지 않은 경우: 로그인 유도 또는 localStorage 임시 저장
-  - [ ] Supabase 연동
-    - [ ] `lib/api/supabase-api.ts` 생성
-      - [ ] `getBookmark()` - 북마크 조회
-      - [ ] `addBookmark()` - 북마크 추가
-      - [ ] `removeBookmark()` - 북마크 제거
-      - [ ] `getUserBookmarks()` - 사용자 북마크 목록
-    - [ ] `bookmarks` 테이블 사용 (db.sql 참고)
-      - [ ] `user_id` (users 테이블 참조)
-      - [ ] `content_id` (한국관광공사 API contentid)
-      - [ ] UNIQUE 제약 (user_id, content_id)
-  - [ ] 상세페이지에 북마크 버튼 추가
-- [ ] 반려동물 정보 섹션 (MVP 2.5)
-  - [ ] `components/tour-detail/detail-pet-tour.tsx` 생성
-    - [ ] `getDetailPetTour()` API 연동
-    - [ ] 반려동물 동반 가능 여부 표시
-    - [ ] 반려동물 크기 제한 정보
-    - [ ] 반려동물 입장 가능 장소 (실내/실외)
-    - [ ] 반려동물 동반 추가 요금
-    - [ ] 반려동물 전용 시설 정보
-    - [ ] 아이콘 및 뱃지 디자인 (🐾)
-    - [ ] 주의사항 강조 표시
-- [ ] 추천 관광지 섹션 (선택 사항)
-  - [ ] 같은 지역 또는 타입의 다른 관광지 추천
-  - [ ] 카드 형태로 표시
-- [ ] 최종 통합 및 스타일링
-  - [ ] 모든 섹션 통합
-  - [ ] 반응형 디자인 확인
-  - [ ] 모바일 최적화
-  - [ ] 접근성 확인 (ARIA 라벨, 키보드 네비게이션)
+- [x] 운영 정보 섹션 (MVP 2.4.2)
+  - [x] `components/tour-detail/detail-intro.tsx` 생성
+    - [x] `getDetailIntro()` API 연동
+    - [x] 운영시간/개장시간
+    - [x] 휴무일
+    - [x] 이용요금
+    - [x] 주차 가능 여부
+    - [x] 수용인원
+    - [x] 체험 프로그램
+    - [x] 유모차/반려동물 동반 가능 여부
+    - [x] 정보 없는 항목 숨김 처리
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] DetailIntro 컴포넌트: Server Component로 구현 (클라이언트 사이드 기능 불필요)
+    - [x] DetailIntro 컴포넌트: 타입별 필드 매핑 로직 구현 (getTypeSpecificFields 함수)
+    - [x] DetailIntro 컴포넌트: 필드 라벨 매핑 객체 구현 (fieldLabels)
+    - [x] DetailIntro 컴포넌트: 아이콘 사용 (lucide-react: Clock, Calendar, DollarSign, Car, Baby, Phone, ExternalLink, Users, Activity 등)
+    - [x] DetailIntro 컴포넌트: InfoItem 서브 컴포넌트 구현 (외부 링크 처리 포함)
+    - [x] DetailIntro 컴포넌트: 정보 없는 경우 null 반환 (조건부 렌더링)
+    - [x] DetailIntro 컴포넌트: 반응형 디자인 (모바일 우선, space-y-6 sm:space-y-8)
+    - [x] DetailIntro 컴포넌트: 접근성 개선 (section 태그, aria-label, 시맨틱 HTML)
+    - [x] app/places/[contentId]/page.tsx: TourIntroContent 컴포넌트 추가 (운영 정보 로딩 분리)
+    - [x] app/places/[contentId]/page.tsx: getDetailIntro() API 호출 추가
+    - [x] app/places/[contentId]/page.tsx: DetailIntro 컴포넌트 통합 (Suspense로 감싸서 로딩 처리)
+    - [x] app/places/[contentId]/page.tsx: 운영 정보 로딩 스켈레톤 추가
+    - [x] app/places/[contentId]/page.tsx: 운영 정보 에러 처리 (선택적이므로 에러 발생 시 null 반환)
+    - [x] DetailPageSkeleton: 운영 정보 섹션 스켈레톤 추가
+- [x] 이미지 갤러리 (MVP 2.4.3)
+  - [x] `components/tour-detail/detail-gallery.tsx` 생성
+    - [x] `getDetailImage()` API 연동
+    - [x] 대표 이미지 + 서브 이미지들
+    - [x] 이미지 슬라이드 기능 (Swiper 또는 캐러셀)
+    - [x] 이미지 클릭 시 전체화면 모달
+    - [x] 이미지 없으면 기본 이미지
+    - [x] Next.js Image 컴포넌트 사용 (최적화)
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] DetailGallery 컴포넌트: Client Component로 구현 (이미지 클릭, 모달 등 인터랙션)
+    - [x] TourGalleryContent 컴포넌트: Server Component로 데이터 로딩 (app/places/[contentId]/page.tsx에 구현)
+    - [x] 이미지 슬라이드: 간단한 캐러셀 직접 구현 (이전/다음 버튼, 키보드 네비게이션)
+    - [x] 전체화면 모달: Dialog 컴포넌트 사용, 모달 내 이미지 슬라이드 지원
+    - [x] 썸네일 그리드: 반응형 그리드 (모바일 2열, 태블릿 4열, 데스크톱 5열)
+    - [x] 이미지 로드 실패 처리: onError 핸들러로 에러 이미지 추적 및 fallback 표시
+    - [x] 접근성 개선: ARIA 라벨, 키보드 네비게이션 (좌우 화살표, ESC), 포커스 관리
+    - [x] 반응형 디자인: 모바일 우선, 대표 이미지 크기 조정 (h-64 sm:h-80 md:h-96)
+    - [x] 이미지 인덱스 표시: 현재 이미지 번호 / 전체 개수 표시
+    - [x] 상세페이지 통합: Suspense로 로딩 처리, 로딩 스켈레톤 추가, 에러 처리 (선택적 기능)
+- [x] 지도 섹션 (MVP 2.4.4)
+  - [x] `components/tour-detail/detail-map.tsx` 생성
+    - [x] 해당 관광지 위치 표시
+    - [x] 마커 1개 표시
+    - [x] "길찾기" 버튼
+      - [x] 네이버 지도 앱/웹 연동
+      - [x] URL: `https://map.naver.com/v5/directions/{좌표}`
+    - [x] 좌표 정보 표시 (선택 사항)
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] DetailMap 컴포넌트: Client Component로 구현 (지도 인터랙션 필요)
+    - [x] DetailMap 컴포넌트: Naver Maps API v3 (NCP) 동적 로드 (기존 naver-map.tsx 패턴 재사용)
+    - [x] DetailMap 컴포넌트: 좌표 변환 함수 재사용 (convertKATECToWGS84)
+    - [x] DetailMap 컴포넌트: 단일 마커 표시 (해당 관광지 위치, 파란색 원형 마커)
+    - [x] DetailMap 컴포넌트: 지도 중심을 관광지 위치로 설정 (zoom: 15)
+    - [x] DetailMap 컴포넌트: 지도 컨트롤 (줌 인/아웃)
+    - [x] DetailMap 컴포넌트: 마커 클릭 시 인포윈도우 표시 (관광지명, 주소)
+    - [x] DetailMap 컴포넌트: 마커 클릭 시 인포윈도우 자동 열기
+    - [x] 길찾기 버튼: 지도 위 오버레이로 배치 (우측 하단)
+    - [x] 길찾기 버튼: Navigation 아이콘 사용 (lucide-react)
+    - [x] 길찾기 버튼: 새 창에서 열기 (target="\_blank", rel="noopener noreferrer")
+    - [x] 좌표 정보: 지도 하단에 별도 섹션으로 표시 (위도, 경도 소수점 6자리)
+    - [x] 좌표 복사 버튼: 클립보드 API 사용, 복사 완료 토스트 메시지
+    - [x] 로딩 상태: 지도 로드 중 메시지 표시
+    - [x] 에러 처리: API 키 없음, 지도 로드 실패 등 에러 메시지 표시
+    - [x] 반응형 디자인: 모바일 h-64, 데스크톱 h-96
+    - [x] 접근성 개선: section 태그, aria-label, 시맨틱 HTML
+    - [x] app/places/[contentId]/page.tsx: TourDetailContent에 지도 섹션 추가 (이미지 갤러리 다음)
+    - [x] app/places/[contentId]/page.tsx: Suspense로 로딩 처리 (지도 영역 스켈레톤)
+    - [x] app/places/[contentId]/page.tsx: 에러 처리 (선택적 기능이므로 에러 발생 시 null 반환)
+    - [x] DetailPageSkeleton: 지도 섹션 스켈레톤 추가 (제목, 지도 영역, 좌표 정보 영역)
+- [x] 공유 기능 (MVP 2.4.5)
+  - [x] `components/tour-detail/share-button.tsx` 생성
+    - [x] URL 복사 기능
+      - [x] `navigator.clipboard.writeText()` 사용
+      - [x] HTTPS 환경 확인
+    - [x] 복사 완료 토스트 메시지
+    - [x] 공유 아이콘 버튼 (Share/Link 아이콘)
+  - [x] Open Graph 메타태그
+    - [x] `app/places/[contentId]/page.tsx`에 Metadata 생성
+    - [x] `og:title` - 관광지명
+    - [x] `og:description` - 관광지 설명 (100자 이내)
+    - [x] `og:image` - 대표 이미지 (1200x630 권장)
+    - [x] `og:url` - 상세페이지 URL
+    - [x] `og:type` - "website"
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] ShareButton 컴포넌트: Client Component로 구현 (클립보드 API 사용)
+    - [x] ShareButton 컴포넌트: useToast hook 사용 (복사 완료 토스트 메시지)
+    - [x] ShareButton 컴포넌트: Share2 아이콘 사용 (lucide-react)
+    - [x] ShareButton 컴포넌트: 복사 상태 표시 (Check 아이콘, "복사됨" 텍스트)
+    - [x] ShareButton 컴포넌트: HTTPS 환경 확인 및 fallback 처리 (execCommand)
+    - [x] ShareButton 컴포넌트: 에러 처리 (클립보드 API 실패 시 에러 토스트)
+    - [x] ShareButton 컴포넌트: 접근성 개선 (aria-label, 버튼 최소 크기 44x44px)
+    - [x] ShareButton 컴포넌트: 반응형 디자인 (모바일에서 아이콘만, 데스크톱에서 텍스트 포함)
+    - [x] 상세페이지 통합: ShareButton을 뒤로가기 버튼과 같은 섹션에 배치
+    - [x] 상세페이지 통합: flex 레이아웃으로 뒤로가기 버튼과 공유 버튼 나란히 배치
+    - [x] generateMetadata 함수: Next.js 15 Metadata API 사용
+    - [x] generateMetadata 함수: getDetailCommon() API 호출하여 관광지 정보 조회
+    - [x] generateMetadata 함수: og:title, og:description (100자 이내), og:image, og:url, og:type 설정
+    - [x] generateMetadata 함수: Twitter Card 태그 추가 (summary_large_image)
+    - [x] generateMetadata 함수: canonical URL 설정 (alternates.canonical)
+    - [x] generateMetadata 함수: 이미지가 없는 경우 기본 이미지 사용 (og-image.png)
+    - [x] generateMetadata 함수: 에러 처리 (API 호출 실패 시 기본 메타데이터 반환)
+    - [x] generateMetadata 함수: 사이트 URL 환경변수 지원 (NEXT_PUBLIC_SITE_URL, 기본값: localhost:3000)
+- [x] 북마크 기능 (MVP 2.4.5)
+  - [x] `components/bookmarks/bookmark-button.tsx` 생성
+    - [x] 별 아이콘 (채워짐/비어있음)
+    - [x] 북마크 상태 확인 (Supabase 조회)
+    - [x] 북마크 추가/제거 기능
+    - [x] 인증된 사용자 확인 (Clerk)
+    - [x] 로그인하지 않은 경우: 로그인 유도 또는 localStorage 임시 저장
+  - [x] Supabase 연동
+    - [x] `lib/api/supabase-api.ts` 생성
+      - [x] `getBookmark()` - 북마크 조회
+      - [x] `addBookmark()` - 북마크 추가
+      - [x] `removeBookmark()` - 북마크 제거
+      - [x] `getUserBookmarks()` - 사용자 북마크 목록
+    - [x] `bookmarks` 테이블 사용 (db.sql 참고)
+      - [x] `user_id` (users 테이블 참조)
+      - [x] `content_id` (한국관광공사 API contentid)
+      - [x] UNIQUE 제약 (user_id, content_id)
+  - [x] 상세페이지에 북마크 버튼 추가
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] 타입 정의: `Bookmark` 인터페이스 (lib/api/supabase-api.ts)
+    - [x] Clerk user ID를 Supabase user_id로 변환하는 유틸리티 함수 (`getSupabaseUserId`)
+    - [x] 북마크 상태 초기화: useEffect로 컴포넌트 마운트 시 현재 북마크 상태 조회
+    - [x] 로딩 상태 표시: Skeleton UI 사용 (북마크 상태 조회 중)
+    - [x] 토글 중 상태 관리: `isToggling` 상태로 중복 클릭 방지
+    - [x] 에러 처리 개선: 구체적인 에러 메시지 표시 (네트워크 에러, 권한 에러 등)
+    - [x] 중복 북마크 처리: UNIQUE 제약 위반 시 기존 북마크 반환
+    - [x] 반응형 디자인: 모바일에서 아이콘만 표시, 데스크톱에서 아이콘+텍스트
+    - [x] 접근성 개선: aria-label 동적 변경 ("북마크 추가" / "북마크 제거"), 버튼 최소 크기 44x44px
+    - [x] 북마크된 별 아이콘 스타일: fill-yellow-400, text-yellow-400로 채워진 별 표시
+    - [x] 토스트 메시지: 북마크 추가/제거 성공 시 성공 메시지, 실패 시 에러 메시지
+    - [x] 상세페이지 통합: 북마크 버튼을 ShareButton 옆에 flex 레이아웃으로 배치
+- [x] 반려동물 정보 섹션 (MVP 2.5)
+  - [x] `components/tour-detail/detail-pet-tour.tsx` 생성
+    - [x] `getDetailPetTour()` API 연동
+    - [x] 반려동물 동반 가능 여부 표시
+    - [x] 반려동물 크기 제한 정보
+    - [x] 반려동물 입장 가능 장소 (실내/실외)
+    - [x] 반려동물 동반 추가 요금
+    - [x] 반려동물 전용 시설 정보
+    - [x] 아이콘 및 뱃지 디자인 (🐾)
+    - [x] 주의사항 강조 표시
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] DetailPetTour 컴포넌트: Server Component로 구현 (데이터 로딩은 상세페이지에서 처리)
+    - [x] DetailPetTour 컴포넌트: 필드별 아이콘 매핑 (PawPrint, Ruler, Home, MapPin, DollarSign, Info, Car, AlertTriangle)
+    - [x] DetailPetTour 컴포넌트: 반려동물 동반 가능 여부를 뱃지로 강조 표시 (가능: 초록색, 불가능: 빨간색)
+    - [x] DetailPetTour 컴포넌트: 크기 제한 정보를 색상별 뱃지로 표시 (소형: 초록색, 중형: 노란색, 대형: 주황색)
+    - [x] DetailPetTour 컴포넌트: 입장 가능 장소 정보를 아이콘과 함께 표시 (실내: Home, 실외: MapPin)
+    - [x] DetailPetTour 컴포넌트: 추가 요금 정보를 강조 표시 (amber 색상)
+    - [x] DetailPetTour 컴포넌트: 주의사항 섹션 추가 (반려동물 동반 불가능인 경우 빨간색 경고 박스)
+    - [x] DetailPetTour 컴포넌트: 빈 상태 처리 (반려동물 정보가 없는 경우 null 반환)
+    - [x] DetailPetTour 컴포넌트: 반응형 디자인 (모바일 우선, space-y-6 sm:space-y-8)
+    - [x] DetailPetTour 컴포넌트: 접근성 개선 (section 태그, aria-label, 시맨틱 HTML)
+    - [x] app/places/[contentId]/page.tsx: TourPetContent 컴포넌트 추가 (Server Component로 데이터 로딩)
+    - [x] app/places/[contentId]/page.tsx: getDetailPetTour() API 호출 추가
+    - [x] app/places/[contentId]/page.tsx: DetailPetTour 컴포넌트 통합 (운영 정보 다음, 이미지 갤러리 전)
+    - [x] app/places/[contentId]/page.tsx: Suspense로 로딩 처리 (반려동물 정보 영역 스켈레톤)
+    - [x] app/places/[contentId]/page.tsx: 에러 처리 (선택적 기능이므로 에러 발생 시 null 반환)
+    - [x] DetailPageSkeleton: 반려동물 정보 섹션 스켈레톤 추가 (제목, 뱃지 영역, 정보 항목 영역)
+- [x] 추천 관광지 섹션 (선택 사항)
+  - [x] 같은 지역 또는 타입의 다른 관광지 추천
+  - [x] 카드 형태로 표시
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] DetailRecommendations 컴포넌트: Server Component로 구현 (데이터 로딩은 상세페이지에서 처리)
+    - [x] DetailRecommendations 컴포넌트: TourCard 컴포넌트 재사용
+    - [x] DetailRecommendations 컴포넌트: 반응형 그리드 레이아웃 (모바일 1열, 태블릿 2열, 데스크톱 3열)
+    - [x] DetailRecommendations 컴포넌트: 최대 6개 표시
+    - [x] DetailRecommendations 컴포넌트: 빈 상태 처리 (추천 관광지가 없는 경우 null 반환)
+    - [x] DetailRecommendations 컴포넌트: 섹션 제목 및 설명 추가
+    - [x] DetailRecommendations 컴포넌트: 접근성 개선 (section 태그, aria-label, 시맨틱 HTML)
+    - [x] TourRecommendationsContent 함수: 같은 지역+타입 우선 조회 (우선순위 1)
+    - [x] TourRecommendationsContent 함수: 같은 지역의 다른 타입 관광지 추가 조회 (우선순위 2, 결과가 부족한 경우)
+    - [x] TourRecommendationsContent 함수: 같은 타입의 다른 지역 관광지 추가 조회 (우선순위 3, 여전히 부족한 경우)
+    - [x] TourRecommendationsContent 함수: 현재 관광지 제외 필터링
+    - [x] TourRecommendationsContent 함수: 최대 6개까지 선택
+    - [x] TourRecommendationsContent 함수: 에러 처리 (선택적 기능이므로 에러 발생 시 null 반환)
+    - [x] app/places/[contentId]/page.tsx: TourRecommendationsContent 컴포넌트 추가 (지도 섹션 다음)
+    - [x] app/places/[contentId]/page.tsx: Suspense로 로딩 처리 (추천 관광지 영역 스켈레톤)
+    - [x] app/places/[contentId]/page.tsx: 에러 처리 (선택적 기능이므로 에러 발생 시 null 반환)
+    - [x] DetailPageSkeleton: 추천 관광지 섹션 스켈레톤 추가 (제목 스켈레톤, 카드 그리드 스켈레톤 3개)
+- [x] 최종 통합 및 스타일링
+  - [x] 모든 섹션 통합
+  - [x] 반응형 디자인 확인
+  - [x] 모바일 최적화
+  - [x] 접근성 확인 (ARIA 라벨, 키보드 네비게이션)
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] 섹션 간 일관성 개선: 모든 섹션에 `space-y-6 sm:space-y-8` 및 `pt-8 sm:pt-12 border-t` 적용하여 시각적 구분 추가
+    - [x] 섹션 제목 스타일 통일: 모든 섹션 제목을 `text-2xl sm:text-3xl font-bold`로 통일
+    - [x] 접근성 개선: 모든 버튼과 링크에 `focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2` 포커스 스타일 추가
+    - [x] 키보드 네비게이션 개선: 모든 버튼에 Enter/Space 키 지원 추가 (`onKeyDown` 핸들러)
+    - [x] 모바일 최적화 확인: 모든 버튼이 최소 44x44px 크기, 버튼 간 간격 최소 8px 확인
+    - [x] 반응형 간격 개선: 메인 컨테이너에 `space-y-8 sm:space-y-12` 적용, 네비게이션 섹션에 `mb-6 sm:mb-8` 적용
+    - [x] 북마크 버튼 접근성 개선: `aria-pressed` 속성 추가하여 북마크 상태 명시
+    - [x] 공유 버튼 접근성 개선: 복사 상태에 따라 `aria-label` 동적 변경
+    - [x] 이미지 갤러리 접근성 개선: 썸네일 버튼에 `aria-current` 속성 추가, 키보드 네비게이션 지원
+    - [x] 지도 섹션 제목 스타일 통일: `text-xl font-semibold`에서 `text-2xl sm:text-3xl font-bold`로 변경
+    - [x] 로딩 스켈레톤 개선: DetailPageSkeleton에 섹션 구분선 및 일관된 간격 적용
 
 ## Phase 4: 통계 대시보드 페이지 (`/stats`)
 
-- [ ] 페이지 기본 구조
-  - [ ] `app/stats/page.tsx` 생성
-    - [ ] 기본 레이아웃 구조
-    - [ ] 반응형 레이아웃 설정 (모바일 우선)
-    - [ ] Server Component로 구현
-- [ ] 통계 데이터 수집
-  - [ ] `lib/api/stats-api.ts` 생성
-    - [ ] `getRegionStats()` - 지역별 관광지 개수 집계
-      - [ ] `areaBasedList2` API로 각 지역별 totalCount 조회
-      - [ ] 지역 코드별로 API 호출
-    - [ ] `getTypeStats()` - 타입별 관광지 개수 집계
-      - [ ] `areaBasedList2` API로 각 타입별 totalCount 조회
-      - [ ] contentTypeId별로 API 호출
-    - [ ] `getStatsSummary()` - 전체 통계 요약
-      - [ ] 전체 관광지 수
-      - [ ] Top 3 지역
-      - [ ] Top 3 타입
-      - [ ] 마지막 업데이트 시간
-    - [ ] 병렬 API 호출로 성능 최적화
-    - [ ] 에러 처리 및 재시도 로직
-    - [ ] 데이터 캐싱 (revalidate: 3600)
-- [ ] 통계 요약 카드
-  - [ ] `components/stats/stats-summary.tsx` 생성
-    - [ ] 전체 관광지 수 표시
-    - [ ] Top 3 지역 표시 (카드 형태)
-    - [ ] Top 3 타입 표시 (카드 형태)
-    - [ ] 마지막 업데이트 시간 표시
-    - [ ] 로딩 상태 (Skeleton UI)
-    - [ ] 카드 레이아웃 디자인
-- [ ] 지역별 분포 차트 (Bar Chart)
-  - [ ] `components/stats/region-chart.tsx` 생성
-    - [ ] shadcn/ui Chart 컴포넌트 설치 (Bar)
-    - [ ] recharts 기반 Bar Chart 구현
-    - [ ] X축: 지역명 (서울, 부산, 제주 등)
-    - [ ] Y축: 관광지 개수
-    - [ ] 상위 10개 지역 표시 (또는 전체)
-    - [ ] 바 클릭 시 해당 지역 목록 페이지로 이동
-    - [ ] 호버 시 정확한 개수 표시
-    - [ ] 다크/라이트 모드 지원
-    - [ ] 반응형 디자인
-    - [ ] 로딩 상태
-    - [ ] 접근성 (ARIA 라벨, 키보드 네비게이션)
-- [ ] 타입별 분포 차트 (Donut Chart)
-  - [ ] `components/stats/type-chart.tsx` 생성
-    - [ ] shadcn/ui Chart 컴포넌트 설치 (Pie/Donut)
-    - [ ] recharts 기반 Donut Chart 구현
-    - [ ] 타입별 비율 (백분율)
-    - [ ] 타입별 개수 표시
-    - [ ] 섹션 클릭 시 해당 타입 목록 페이지로 이동
-    - [ ] 호버 시 타입명, 개수, 비율 표시
-    - [ ] 다크/라이트 모드 지원
-    - [ ] 반응형 디자인
-    - [ ] 로딩 상태
-    - [ ] 접근성 (ARIA 라벨)
-- [ ] 페이지 통합
-  - [ ] `app/stats/page.tsx`에 모든 컴포넌트 통합
-    - [ ] 통계 요약 카드 (상단)
-    - [ ] 지역별 분포 차트 (중단)
-    - [ ] 타입별 분포 차트 (하단)
+- [x] 페이지 기본 구조
+  - [x] `app/stats/page.tsx` 생성
+    - [x] 기본 레이아웃 구조
+    - [x] 반응형 레이아웃 설정 (모바일 우선)
+    - [x] Server Component로 구현
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] 파일 헤더 주석 추가 (JSDoc 스타일, 파일 설명, 주요 기능, 핵심 구현 로직, dependencies)
+    - [x] 접근성 개선 (role="main", aria-label 속성, 시맨틱 HTML 사용)
+    - [x] 페이지 제목 섹션 구현 (h1 태그, 설명 텍스트)
+    - [x] 향후 통계 컴포넌트를 위한 섹션 영역 준비 (주석으로 표시, TODO 주석 포함)
+    - [x] 기존 페이지들과 일관된 레이아웃 구조 적용 (min-h-[calc(100vh-4rem)], container mx-auto, 반응형 패딩)
+    - [x] 반응형 디자인 (모바일 우선, sm/md/lg/xl 브레이크포인트)
+- [x] 통계 데이터 수집
+  - [x] `lib/api/stats-api.ts` 생성
+    - [x] `getRegionStats()` - 지역별 관광지 개수 집계
+      - [x] `areaBasedList2` API로 각 지역별 totalCount 조회
+      - [x] 지역 코드별로 API 호출
+    - [x] `getTypeStats()` - 타입별 관광지 개수 집계
+      - [x] `areaBasedList2` API로 각 타입별 totalCount 조회
+      - [x] contentTypeId별로 API 호출
+    - [x] `getStatsSummary()` - 전체 통계 요약
+      - [x] 전체 관광지 수
+      - [x] Top 3 지역
+      - [x] Top 3 타입
+      - [x] 마지막 업데이트 시간
+    - [x] 병렬 API 호출로 성능 최적화
+    - [x] 에러 처리 및 재시도 로직
+    - [x] 데이터 캐싱 (revalidate: 3600)
+  ***
+  - [x] 추가 개발 사항 (plan 모드 build)
+    - [x] `lib/api/stats-api.ts` 파일 생성 및 기본 구조 작성
+      - [x] 파일 헤더 주석 (JSDoc 스타일, 파일 설명, 주요 기능, 핵심 구현 로직, dependencies)
+      - [x] import 문 작성 (getAreaCode, getAreaBasedList, TourAPIError, CONTENT_TYPE, 타입 정의)
+      - [x] 타입명 매핑 객체 생성 (TYPE_NAME_MAP: 8개 타입 ID와 한글명 매핑)
+    - [x] `getRegionStats()` 함수 구현
+      - [x] `getAreaCode()` API로 모든 지역 코드 조회 (numOfRows: 100으로 한 번에 조회)
+      - [x] 각 지역별로 `getAreaBasedList({ areaCode, numOfRows: 1, pageNo: 1 })` 호출하여 `totalCount` 추출
+      - [x] `Promise.allSettled()`로 병렬 처리 및 부분 실패 허용
+      - [x] 지역명 매핑: `getAreaCode()` 응답의 `name` 필드 사용
+      - [x] 에러 처리: 일부 지역 실패 시 로그만 남기고 성공한 항목만 반환
+    - [x] `getTypeStats()` 함수 구현
+      - [x] `CONTENT_TYPE` 상수에서 모든 타입 ID 추출 (8개 타입)
+      - [x] 각 타입별로 `getAreaBasedList({ contentTypeId, numOfRows: 1, pageNo: 1 })` 호출하여 `totalCount` 추출
+      - [x] `Promise.allSettled()`로 병렬 처리 및 부분 실패 허용
+      - [x] 타입명 매핑: `TYPE_NAME_MAP` 객체 사용
+      - [x] 전체 개수 대비 비율 계산 (percentage, 백분율, 소수점 2자리)
+      - [x] 에러 처리: 일부 타입 실패 시 로그만 남기고 성공한 항목만 반환
+    - [x] `getStatsSummary()` 함수 구현
+      - [x] `getRegionStats()`와 `getTypeStats()`를 `Promise.all()`로 병렬 호출
+      - [x] 전체 관광지 수: 모든 타입의 `count` 합계 계산
+      - [x] Top 3 지역: `getRegionStats()` 결과를 `count` 기준 내림차순 정렬 후 상위 3개 추출
+      - [x] Top 3 타입: `getTypeStats()` 결과를 `count` 기준 내림차순 정렬 후 상위 3개 추출
+      - [x] 마지막 업데이트 시간: 현재 시간 (`new Date()`) 설정
+      - [x] 에러 처리: 전체 실패 시 `TourAPIError` 발생
+    - [x] 에러 처리 개선
+      - [x] 부분 실패 허용: `Promise.allSettled()` 사용하여 일부 항목 실패해도 나머지 데이터 반환
+      - [x] 실패한 항목은 `console.error()`로 로그 남기고 제외
+      - [x] 전체 실패 시 `TourAPIError` 발생
+      - [x] 타입 안전성 보장: TypeScript strict 모드 준수, null 체크 및 타입 가드 사용
+- [x] 통계 요약 카드
+  - [x] `components/stats/stats-summary.tsx` 생성
+    - [x] 전체 관광지 수 표시
+    - [x] Top 3 지역 표시 (카드 형태)
+    - [x] Top 3 타입 표시 (카드 형태)
+    - [x] 마지막 업데이트 시간 표시
+    - [x] 로딩 상태 (Skeleton UI)
+    - [x] 카드 레이아웃 디자인
+  ***
+  - [x] 추가 개발 사항 (plan 모드 build)
+    - [x] shadcn/ui Card 컴포넌트 설치 (pnpx shadcn@latest add card)
+    - [x] StatsSummary 컴포넌트: Server Component로 구현 (데이터 로딩은 상위에서 처리)
+    - [x] StatsSummary 컴포넌트: 반응형 그리드 레이아웃 (모바일 1열, 태블릿 2열, 데스크톱 4열)
+    - [x] StatsSummary 컴포넌트: 전체 관광지 수 카드 (큰 숫자, MapPin 아이콘)
+    - [x] StatsSummary 컴포넌트: Top 3 지역 카드 (순위 뱃지, 지역명, 개수, Trophy 아이콘)
+    - [x] StatsSummary 컴포넌트: Top 3 타입 카드 (순위 뱃지, 타입명, 개수, BarChart3 아이콘)
+    - [x] StatsSummary 컴포넌트: 마지막 업데이트 시간 카드 (Clock 아이콘, 한국어 날짜 포맷)
+    - [x] StatsSummarySkeleton 컴포넌트: 4개 카드 스켈레톤 구현 (전체 수, Top 3 지역, Top 3 타입, 업데이트 시간)
+    - [x] StatsSummarySkeleton 컴포넌트: 반응형 그리드 레이아웃 (StatsSummary와 동일)
+    - [x] 날짜 포맷팅 유틸리티: formatDateKorean() 함수 구현 (Intl.DateTimeFormat 사용, 한국어 형식)
+    - [x] StatsSummaryContent Server Component: getStatsSummary() API 호출
+    - [x] StatsSummaryContent Server Component: 에러 처리 (Next.js error.tsx에서 처리)
+    - [x] app/stats/page.tsx: StatsSummaryContent 통합 (Suspense로 로딩 처리)
+    - [x] app/stats/page.tsx: StatsSummarySkeleton을 Suspense fallback으로 사용
+    - [x] 접근성 개선: 모든 카드에 role="article", aria-label 추가
+    - [x] 접근성 개선: 섹션에 aria-label="통계 요약" 추가
+    - [x] 접근성 개선: 숫자 데이터에 aria-label 추가 (예: "전체 관광지 12345개")
+    - [x] 반응형 디자인: 모바일 우선, 카드 간격 gap-4 sm:gap-6
+    - [x] 아이콘 사용: lucide-react (MapPin, BarChart3, Clock, Trophy)
+    - [x] 순위 표시: 1, 2, 3 뱃지 (원형, primary 색상)
+    - [x] 빈 상태 처리: 데이터가 없는 경우 "데이터 없음" 메시지 표시
+- [x] 지역별 분포 차트 (Bar Chart)
+  - [x] `components/stats/region-chart.tsx` 생성
+    - [x] shadcn/ui Chart 컴포넌트 설치 (Bar)
+    - [x] recharts 기반 Bar Chart 구현
+    - [x] X축: 지역명 (서울, 부산, 제주 등)
+    - [x] Y축: 관광지 개수
+    - [x] 상위 10개 지역 표시 (또는 전체)
+    - [x] 바 클릭 시 해당 지역 목록 페이지로 이동
+    - [x] 호버 시 정확한 개수 표시
+    - [x] 다크/라이트 모드 지원
+    - [x] 반응형 디자인
+    - [x] 로딩 상태
+    - [x] 접근성 (ARIA 라벨, 키보드 네비게이션)
+  ***
+  - [x] 추가 개발 사항 (plan 모드 build)
+    - [x] recharts 패키지 설치 (v3.5.1)
+    - [x] shadcn/ui Chart 컴포넌트 설치 (`pnpx shadcn@latest add chart`)
+    - [x] RegionChartContent Server Component 구현 (getRegionStats() API 호출)
+    - [x] RegionChart Client Component 구현 (recharts BarChart 사용)
+    - [x] RegionChartSkeleton 컴포넌트 구현 (로딩 스켈레톤)
+    - [x] 가로형 Bar Chart 구현 (layout="vertical", Y축에 지역명, X축에 개수)
+    - [x] 상위 10개 지역 추출 및 정렬 (count 기준 내림차순)
+    - [x] 바 클릭 핸들러 구현 (router.push로 `/?areaCode={areaCode}` 이동)
+    - [x] ChartTooltip 구현 (호버 시 지역명과 정확한 개수 표시)
+    - [x] 다크/라이트 모드 자동 지원 (Tailwind CSS 변수 활용)
+    - [x] 반응형 디자인 (모바일 h-[400px], 데스크톱 h-[500px])
+    - [x] 접근성 개선 (role="article", role="img", aria-label, sr-only 데이터 테이블)
+    - [x] 빈 데이터 처리 (데이터 없음 메시지 표시)
+    - [x] app/stats/page.tsx 통합 (Suspense로 로딩 처리, RegionChartSkeleton fallback)
+    - [x] Card 컴포넌트로 감싸서 섹션 구분
+    - [x] 제목 및 설명 추가 (MapPin 아이콘 사용)
+- [x] 타입별 분포 차트 (Donut Chart)
+  - [x] `components/stats/type-chart.tsx` 생성
+    - [x] shadcn/ui Chart 컴포넌트 설치 (Pie/Donut)
+    - [x] recharts 기반 Donut Chart 구현
+    - [x] 타입별 비율 (백분율)
+    - [x] 타입별 개수 표시
+    - [x] 섹션 클릭 시 해당 타입 목록 페이지로 이동
+    - [x] 호버 시 타입명, 개수, 비율 표시
+    - [x] 다크/라이트 모드 지원
+    - [x] 반응형 디자인
+    - [x] 로딩 상태
+    - [x] 접근성 (ARIA 라벨)
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] TypeChart 컴포넌트: Client Component로 구현 (recharts PieChart 사용)
+    - [x] TypeChart 컴포넌트: innerRadius 설정으로 Donut 형태 구현 (outerRadius: 120, innerRadius: 60)
+    - [x] TypeChart 컴포넌트: 8개 타입별 색상 구분 (TYPE_COLORS 배열, HSL 색상 사용)
+    - [x] TypeChart 컴포넌트: 섹션 클릭 핸들러 구현 (router.push로 `/?contentTypeId={contentTypeId}` 이동)
+    - [x] TypeChart 컴포넌트: ChartTooltip 구현 (호버 시 타입명, 개수, 비율 표시)
+    - [x] TypeChart 컴포넌트: Legend 구현 (하단에 타입명과 비율 표시)
+    - [x] TypeChart 컴포넌트: Pie 레이블 구현 (각 섹션에 타입명과 비율 표시)
+    - [x] TypeChart 컴포넌트: 다크/라이트 모드 자동 지원 (Tailwind CSS 변수 활용)
+    - [x] TypeChart 컴포넌트: 반응형 디자인 (모바일 h-[400px], 데스크톱 h-[500px])
+    - [x] TypeChart 컴포넌트: 접근성 개선 (role="article", role="img", aria-label, sr-only 데이터 테이블)
+    - [x] TypeChart 컴포넌트: 빈 데이터 처리 (데이터 없음 메시지 표시)
+    - [x] TypeChartSkeleton 컴포넌트: 로딩 스켈레톤 구현 (Card 컴포넌트로 감싸기)
+    - [x] TypeChartContent Server Component: getTypeStats() API 호출
+    - [x] TypeChartContent Server Component: TypeChart 컴포넌트에 데이터 전달
+    - [x] TypeChartContent Server Component: 에러 처리 (Next.js error.tsx에서 처리)
+    - [x] app/stats/page.tsx: TypeChartContent 컴포넌트 import 및 추가
+    - [x] app/stats/page.tsx: Suspense로 로딩 처리 (TypeChartSkeleton fallback)
+    - [x] app/stats/page.tsx: 지역별 차트 다음에 배치 (주석 제거 및 활성화)
+- [x] 페이지 통합
+  - [x] `app/stats/page.tsx`에 모든 컴포넌트 통합
+    - [x] 통계 요약 카드 (상단)
+    - [x] 지역별 분포 차트 (중단)
+    - [x] 타입별 분포 차트 (하단)
   - [ ] 에러 처리 (에러 메시지 + 재시도 버튼)
   - [ ] 네비게이션에 통계 페이지 링크 추가
   - [ ] 최종 페이지 확인
@@ -580,48 +852,223 @@
     - [ ] `users` 테이블과의 관계 확인
     - [ ] 인덱스 확인 (user_id, content_id, created_at)
     - [ ] RLS 비활성화 확인 (개발 환경)
-- [ ] 북마크 목록 페이지
-  - [ ] `app/bookmarks/page.tsx` 생성
-    - [ ] 인증된 사용자만 접근 가능
-    - [ ] 로그인하지 않은 경우 로그인 유도
-  - [ ] `components/bookmarks/bookmark-list.tsx` 생성
-    - [ ] 사용자 북마크 목록 조회 (`getUserBookmarks()`)
-    - [ ] 카드 레이아웃 (홈페이지와 동일한 tour-card 사용)
-    - [ ] 빈 상태 처리 (북마크 없을 때)
-    - [ ] 로딩 상태 (Skeleton UI)
-- [ ] 북마크 관리 기능
-  - [ ] 정렬 옵션
-    - [ ] 최신순 (created_at DESC)
-    - [ ] 이름순 (가나다순)
-    - [ ] 지역별
-  - [ ] 일괄 삭제 기능
-    - [ ] 체크박스 선택
-    - [ ] 선택 항목 삭제
-    - [ ] 확인 다이얼로그
-  - [ ] 개별 삭제 기능
-    - [ ] 각 카드에 삭제 버튼
-- [ ] 페이지 통합 및 스타일링
-  - [ ] 반응형 디자인 확인
-  - [ ] 최종 페이지 확인
+  ***
+  - [x] 추가 개발 사항 (plan 모드 build)
+    - [x] 검증 스크립트 작성 (`scripts/verify-supabase-setup.ts`)
+      - [x] 테이블 존재 여부 확인 함수 구현
+      - [x] users 테이블 구조 확인 함수 구현
+      - [x] bookmarks 테이블 구조 확인 함수 구현
+      - [x] 외래키 관계 확인 함수 구현 (bookmarks.user_id → users.id)
+      - [x] UNIQUE 제약조건 확인 함수 구현 (bookmarks(user_id, content_id))
+      - [x] RLS 상태 확인 함수 구현 (개발 환경 비활성화 확인)
+      - [x] 인덱스 확인 함수 구현 (간접적 확인)
+      - [x] 환경변수 확인 함수 구현 (NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+      - [x] 검증 결과 요약 및 리포트 기능
+    - [x] package.json에 검증 스크립트 추가 (`pnpm run verify:supabase`)
+    - [x] 검증 가이드 문서 작성 (`docs/SUPABASE_SETUP_VERIFICATION.md`)
+      - [x] 검증 스크립트 실행 방법
+      - [x] 검증 항목 설명
+      - [x] 수동 확인 방법 (Supabase Dashboard SQL Editor)
+      - [x] 문제 해결 가이드
+      - [x] 검증 체크리스트
+  ***
+  - [ ] 추가 개발 사항 (오류 수정)
+    - [ ] 사용자 동기화 자동 처리
+      - [ ] `getSupabaseUserId` 함수에서 사용자가 없을 경우 자동으로 동기화 시도
+      - [ ] 서버 사이드: Service Role 클라이언트로 직접 동기화
+      - [ ] 클라이언트 사이드: `/api/sync-user` API 호출
+      - [ ] 동기화 실패 시 명확한 에러 메시지 표시
+    - [ ] 지역 코드 정보 보완
+      - [ ] `extractAreaCodeFromAddress` 함수 구현 (주소에서 지역 코드 추출)
+      - [ ] 한국관광공사 지역 코드 매핑 (17개 시/도)
+      - [ ] 북마크 목록에서 지역별 정렬 기능 개선
+    - [ ] 에러 처리 개선
+      - [ ] 사용자 동기화 문제 시 명확한 에러 메시지
+      - [ ] 북마크 목록 조회 실패 시 사용자 친화적 메시지
+      - [ ] `getUserBookmarks` 함수에서 사용자 없음 에러 처리
+- [x] 북마크 목록 페이지
+  - [x] `app/bookmarks/page.tsx` 생성
+    - [x] 인증된 사용자만 접근 가능
+    - [x] 로그인하지 않은 경우 로그인 유도
+  - [x] `components/bookmarks/bookmark-list.tsx` 생성
+    - [x] 사용자 북마크 목록 조회 (`getUserBookmarks()`)
+    - [x] 카드 레이아웃 (홈페이지와 동일한 tour-card 사용)
+    - [x] 빈 상태 처리 (북마크 없을 때)
+    - [x] 로딩 상태 (Skeleton UI)
+  ***
+  - [x] 추가 개발 사항 (plan 모드 build)
+    - [x] Server Component로 페이지 구현 (app/bookmarks/page.tsx)
+      - [x] Clerk 인증 확인 (auth() 함수 사용)
+      - [x] 인증되지 않은 사용자 리다이렉트 (redirect('/sign-in'))
+      - [x] 파일 헤더 주석 추가 (JSDoc 스타일)
+      - [x] 기본 레이아웃 구조 (페이지 제목, 반응형 컨테이너)
+      - [x] 접근성 개선 (role="main", aria-label)
+    - [x] 북마크 데이터 로딩 로직 구현
+      - [x] getUserBookmarks() 함수로 북마크 목록 조회
+      - [x] 각 북마크의 content_id로 getDetailCommon() 병렬 호출
+      - [x] TourDetail을 TourItem으로 변환
+      - [x] 에러 처리 (일부 관광지 정보 조회 실패 시 제외)
+      - [x] BookmarkWithTour 타입 정의
+    - [x] 북마크 목록 컴포넌트 구현 (components/bookmarks/bookmark-list.tsx)
+      - [x] Client Component로 구현 ('use client')
+      - [x] TourCard 컴포넌트 재사용
+      - [x] 반응형 그리드 레이아웃 (모바일 1열, 태블릿 2열, 데스크톱 3열)
+      - [x] 빈 상태 처리 (Bookmark 아이콘, 안내 메시지, "관광지 둘러보기" 버튼)
+      - [x] 정렬 기능 구현 (최신순, 이름순, 지역별)
+        - [x] 정렬 UI (버튼 그룹)
+        - [x] URL 쿼리 파라미터로 상태 관리 (searchParams)
+        - [x] 클라이언트 사이드 정렬 로직
+      - [x] 개별 삭제 기능
+        - [x] 각 카드에 삭제 버튼 추가 (호버 시 표시)
+        - [x] removeBookmark() 함수 호출
+        - [x] Optimistic update (삭제 후 목록에서 즉시 제거)
+        - [x] 토스트 메시지 표시
+      - [x] 일괄 삭제 기능
+        - [x] 선택 모드 토글 버튼
+        - [x] 각 카드에 체크박스 추가 (선택 모드일 때만 표시)
+        - [x] 전체 선택 체크박스
+        - [x] 선택된 항목 개수 표시
+        - [x] 삭제 확인 다이얼로그 (Dialog 컴포넌트 사용)
+        - [x] 병렬 삭제 로직 (Promise.all)
+        - [x] 삭제 후 목록 업데이트
+        - [x] 토스트 메시지 표시
+    - [x] 에러 처리 컴포넌트 구현 (components/bookmarks/bookmark-list-error.tsx)
+      - [x] Client Component로 구현 (router.refresh() 사용)
+      - [x] Error 컴포넌트 재사용
+      - [x] 재시도 버튼 기능
+    - [x] 반응형 디자인 적용
+      - [x] 모바일 우선 접근 (Mobile First)
+      - [x] 버튼 최소 크기 44x44px (터치 친화적)
+      - [x] 카드 간격 조정 (모바일 16px, 데스크톱 24px)
+    - [x] 접근성 개선
+      - [x] ARIA 라벨 추가 (모든 버튼, 체크박스)
+      - [x] 시맨틱 HTML 사용 (main, section)
+      - [x] 키보드 네비게이션 지원
+- [x] 북마크 관리 기능
+  - [x] 정렬 옵션
+    - [x] 최신순 (created_at DESC)
+    - [x] 이름순 (가나다순)
+    - [x] 지역별
+  - [x] 일괄 삭제 기능
+    - [x] 체크박스 선택
+    - [x] 선택 항목 삭제
+    - [x] 확인 다이얼로그
+  - [x] 개별 삭제 기능
+    - [x] 각 카드에 삭제 버튼
+- [x] 페이지 통합 및 스타일링
+  - [x] 반응형 디자인 확인
+  - [x] 최종 페이지 확인
+  ***
+  - [x] 추가 개발 사항 (오류 수정)
+    - [x] 사용자 동기화 자동 처리 (`lib/api/supabase-api.ts`)
+      - [x] `getSupabaseUserId` 함수에 `autoSync` 파라미터 추가 (기본값: true)
+      - [x] 사용자가 없을 경우 자동으로 동기화 시도
+      - [x] 서버 사이드: Service Role 클라이언트로 직접 동기화 (Clerk API 사용)
+      - [x] 클라이언트 사이드: `/api/sync-user` API 호출 후 재조회
+      - [x] 동기화 실패 시 명확한 에러 메시지 반환
+    - [x] 지역 코드 정보 보완 (`app/bookmarks/page.tsx`)
+      - [x] `extractAreaCodeFromAddress` 함수 구현 (주소에서 지역 코드 추출)
+      - [x] 한국관광공사 지역 코드 매핑 (17개 시/도: 서울, 인천, 대전, 대구, 광주, 부산, 울산, 세종, 경기, 강원, 충북, 충남, 경북, 경남, 전북, 전남, 제주)
+      - [x] 북마크 목록에서 `areacode` 정보 포함 (지역별 정렬 기능 개선)
+      - [x] `getDetailCommon` API 응답에 `areacode`가 없으므로 주소에서 추출
+    - [x] 에러 처리 개선 (`app/bookmarks/page.tsx`, `lib/api/supabase-api.ts`)
+      - [x] `BookmarksContent` 함수에서 사용자 동기화 문제 시 명확한 에러 메시지 표시
+      - [x] `getUserBookmarks` 함수에서 사용자 없음 에러 처리 개선
+      - [x] 북마크 목록 조회 실패 시 사용자 친화적 메시지 표시
+    - [x] 데이터 변환 오류 수정 (`app/bookmarks/page.tsx`)
+      - [x] `getDetailCommon` API 반환값 구조 수정 (`{ item: TourDetail }` 형태로 접근)
+      - [x] `tourDetail.item`으로 올바르게 접근하도록 수정
+      - [x] `cat1`, `cat2`, `cat3` 필드 누락 문제 해결 (TourDetail에는 없으므로 undefined로 설정)
+      - [x] 이미지 URL 및 텍스트 데이터가 올바르게 전달되도록 수정
 
 ## Phase 6: 최적화 & 배포
 
-- [ ] 이미지 최적화
-  - [ ] `next.config.ts` 외부 도메인 설정
-    - [ ] 한국관광공사 이미지 도메인 추가
-    - [ ] 네이버 지도 이미지 도메인 추가
-  - [ ] Next.js Image 컴포넌트 사용 확인
-    - [ ] priority 속성 (above-the-fold)
-    - [ ] lazy loading (below-the-fold)
-    - [ ] responsive sizes 설정
-- [ ] 전역 에러 핸들링
-  - [ ] `app/error.tsx` 생성
-  - [ ] `app/global-error.tsx` 생성
-  - [ ] API 에러 처리 개선
-- [ ] 404 페이지
-  - [ ] `app/not-found.tsx` 생성
-    - [ ] 사용자 친화적인 메시지
-    - [ ] 홈으로 돌아가기 버튼
+- [x] 이미지 최적화
+  - [x] `next.config.ts` 외부 도메인 설정
+    - [x] 한국관광공사 이미지 도메인 추가
+    - [x] 네이버 지도 이미지 도메인 추가
+  - [x] Next.js Image 컴포넌트 사용 확인
+    - [x] priority 속성 (above-the-fold)
+    - [x] lazy loading (below-the-fold)
+    - [x] responsive sizes 설정
+  ***
+  - [x] 추가 개발 사항 (plan 모드 build)
+    - [x] `next.config.ts` 이미지 최적화 설정 추가
+      - [x] deviceSizes 및 imageSizes 설정
+      - [x] formats 설정 (WebP, AVIF 우선 지원)
+      - [x] 네이버 지도 관련 도메인 추가 (map.naver.com, naver.com)
+    - [x] 공통 이미지 유틸리티 함수 생성 (`lib/utils/image.ts`)
+      - [x] `normalizeImageUrl()` 함수 통합
+      - [x] `isHttpImage()` 함수 추가
+      - [x] `getImageSizes()` 함수 추가 (레이아웃별 sizes 자동 생성)
+      - [x] `getImageProps()` 함수 추가 (이미지 최적화 props 자동 생성)
+      - [x] `DEFAULT_PLACEHOLDER_IMAGE` 상수 정의
+    - [x] TourCard 컴포넌트 이미지 최적화
+      - [x] 공통 이미지 유틸리티 함수 사용
+      - [x] `priority` prop 추가 (선택적 설정)
+      - [x] `sizes` 속성 유틸리티 함수 사용
+      - [x] 이미지 로드 실패 처리 개선
+    - [x] TourList 컴포넌트 개선
+      - [x] 첫 번째 페이지의 첫 6개 카드에만 `priority={true}` 설정
+    - [x] DetailInfo 컴포넌트 이미지 최적화
+      - [x] 공통 이미지 유틸리티 함수 사용
+      - [x] `priority` 속성 유지 (상세페이지 대표 이미지)
+      - [x] `sizes` 속성 유틸리티 함수 사용
+    - [x] DetailGallery 컴포넌트 이미지 최적화
+      - [x] 공통 이미지 유틸리티 함수 사용
+      - [x] 대표 이미지 첫 번째만 `priority` 유지
+      - [x] 썸네일 이미지 lazy loading 적용 (첫 5개는 eager, 나머지는 lazy)
+      - [x] 모달 이미지 `priority` 제거 (사용자가 클릭할 때만 로드)
+      - [x] `sizes` 속성 유틸리티 함수 사용 (대표 이미지, 썸네일, 모달 각각)
+- [x] 전역 에러 핸들링
+  - [x] `app/error.tsx` 생성
+  - [x] `app/global-error.tsx` 생성
+  - [x] API 에러 처리 개선
+  ***
+  - [x] 추가 구현 사항 (plan 모드 build)
+    - [x] `app/error.tsx`: Next.js 15 Error Boundary 패턴 구현
+      - [x] Client Component로 구현 ('use client')
+      - [x] error와 reset props 처리
+      - [x] TourAPIError 타입 구분하여 적절한 메시지 표시
+      - [x] 기존 Error 컴포넌트 재사용
+      - [x] "다시 시도" 버튼으로 reset() 호출
+      - [x] "홈으로 돌아가기" 버튼 제공
+      - [x] 반응형 디자인 (모바일 우선)
+      - [x] 접근성 개선 (ARIA 라벨, 키보드 네비게이션)
+      - [x] 개발 환경에서만 상세 에러 정보 표시 (details 태그)
+    - [x] `app/global-error.tsx`: 루트 레이아웃 에러 처리 구현
+      - [x] Client Component로 구현 ('use client')
+      - [x] html과 body 태그 포함 (루트 레이아웃 대체)
+      - [x] 최소한의 인라인 스타일 사용 (글로벌 CSS 로드 실패 대비)
+      - [x] 에러 메시지 표시
+      - [x] "새로고침" 버튼 제공
+      - [x] "홈으로 돌아가기" 링크 제공
+      - [x] 개발 환경에서만 상세 에러 정보 표시
+      - [x] Clerk, Toast, Supabase 관련 에러 메시지 구분
+    - [x] `app/not-found.tsx`: 404 에러 페이지 구현
+      - [x] Server Component로 구현
+      - [x] 사용자 친화적인 404 메시지
+      - [x] "홈으로 돌아가기" 버튼
+      - [x] "관광지 검색하기" 버튼
+      - [x] 유용한 링크 네비게이션 (홈, 통계, 북마크)
+      - [x] 반응형 디자인 (모바일 우선)
+      - [x] 접근성 개선 (시맨틱 HTML, ARIA 라벨)
+    - [x] API 에러 처리 개선 (`lib/api/tour-api.ts`)
+      - [x] TourAPIErrorType enum 추가 (8가지 에러 타입)
+      - [x] TourAPIError 클래스에 errorType 속성 추가
+      - [x] getUserMessage() 메서드 구현 (에러 타입별 사용자 친화적 메시지)
+      - [x] logError() 메서드 구현 (개발 환경에서만 상세 로그)
+      - [x] 모든 API 함수에 에러 타입 지정
+      - [x] 에러 타입별 적절한 메시지 매핑
+      - [x] 네트워크 에러, 타임아웃 에러, API 키 에러 등 구분
+      - [x] HTTP 상태 코드별 에러 타입 분류 (401/403: API_KEY_INVALID, 408: TIMEOUT_ERROR 등)
+      - [x] API 응답 코드별 에러 타입 분류 (SERVICE_KEY 관련: API_KEY_INVALID)
+      - [x] 검증 에러 (VALIDATION_ERROR) 타입 추가
+      - [x] 에러 로깅 전략 명확화 (개발 환경에서만 상세 로그, 컨텍스트 정보 포함)
+- [x] 404 페이지
+  - [x] `app/not-found.tsx` 생성
+    - [x] 사용자 친화적인 메시지
+    - [x] 홈으로 돌아가기 버튼
 - [ ] SEO 최적화
   - [ ] 메타태그 설정 (`app/layout.tsx`)
     - [ ] 기본 title, description
@@ -630,11 +1077,32 @@
   - [ ] `app/sitemap.ts` 생성
     - [ ] 동적 sitemap 생성 (관광지 상세페이지 포함)
   - [ ] `app/robots.ts` 생성
-- [ ] 성능 최적화
-  - [ ] Lighthouse 점수 측정 (목표: > 80)
-  - [ ] 코드 분할 확인
-  - [ ] 불필요한 번들 제거
-  - [ ] API 응답 캐싱 전략 확인
+- [x] 성능 최적화
+  - [x] Lighthouse 점수 측정 (목표: > 80)
+  - [x] 코드 분할 확인
+  - [x] 불필요한 번들 제거
+  - [x] API 응답 캐싱 전략 확인
+  ***
+  - [x] 추가 개발 사항 (plan 모드 build)
+    - [x] 번들 크기 분석 도구 설정 (@next/bundle-analyzer 패키지 설치, next.config.ts 설정, package.json에 analyze 스크립트 추가)
+    - [x] 코드 분할: next/dynamic을 사용한 컴포넌트 lazy loading (차트, 지도, 갤러리, 북마크 목록)
+      - [x] components/stats/type-chart-content.tsx: TypeChart dynamic import 적용
+      - [x] components/stats/region-chart-content.tsx: RegionChart dynamic import 적용
+      - [x] components/map-content-client.tsx: NaverMap dynamic import 적용
+      - [x] app/places/[contentId]/page.tsx: DetailGallery, DetailMap dynamic import 적용
+      - [x] app/bookmarks/page.tsx: BookmarkList dynamic import 적용
+    - [x] API 캐싱 전략: Server Component fetch 캐싱 전략 문서화 (Next.js 자동 캐싱 활용)
+    - [x] React 최적화: React.memo, useMemo, useCallback 적용
+      - [x] components/tour-card.tsx: React.memo 적용 (props 비교 함수 제공)
+      - [x] components/tour-list.tsx: useMemo, useCallback 적용 (페이지 계산, 핸들러 최적화)
+      - [x] components/tour-filters.tsx: useMemo, useCallback 적용 (필터 업데이트 함수, 핸들러 최적화)
+    - [x] 폰트 최적화: next/font 설정 최적화
+      - [x] app/layout.tsx: display: "swap" 옵션 추가 (FOUT 방지)
+      - [x] app/layout.tsx: preload 옵션 설정 (geistSans: true, geistMono: false)
+    - [x] Third-party 스크립트 최적화: Naver Maps 스크립트는 이미 dynamic import로 최적화됨
+    - [x] 성능 모니터링: Web Vitals 측정 스크립트 추가
+      - [x] components/web-vitals.tsx: Web Vitals 측정 컴포넌트 생성 (web-vitals 패키지 사용)
+      - [x] app/layout.tsx: WebVitals 컴포넌트 추가 (개발 환경에서만 콘솔 로깅)
 - [ ] 환경변수 보안 검증
   - [ ] 모든 필수 환경변수 확인
   - [ ] `.env.example` 업데이트

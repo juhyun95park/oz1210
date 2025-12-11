@@ -17,6 +17,7 @@
  * @dependencies
  * - next/image: 이미지 최적화
  * - lib/types/tour.ts: TourDetail 타입, CONTENT_TYPE 상수
+ * - lib/utils/image.ts: 이미지 유틸리티 함수
  * - components/ui/button.tsx: Button 컴포넌트
  * - components/providers/toast-provider.tsx: useToast hook
  * - lucide-react: Copy, Phone, ExternalLink 아이콘
@@ -34,6 +35,11 @@ import { useToast } from "@/components/providers/toast-provider";
 import { CONTENT_TYPE } from "@/lib/types/tour";
 import type { TourDetail } from "@/lib/types/tour";
 import { cn } from "@/lib/utils";
+import {
+  normalizeImageUrl,
+  isHttpImage,
+  getImageSizes,
+} from "@/lib/utils/image";
 
 interface DetailInfoProps {
   /**
@@ -67,6 +73,15 @@ export function DetailInfo({ detail, className }: DetailInfoProps) {
   const { success } = useToast();
   const [copied, setCopied] = useState(false);
   const [imageError, setImageError] = useState(false);
+
+  // 이미지 URL 정규화 (공통 유틸리티 함수 사용)
+  const imageUrl = normalizeImageUrl(detail.firstimage, null);
+  
+  // HTTP 이미지인지 확인 (공통 유틸리티 함수 사용)
+  const httpImage = imageUrl ? isHttpImage(imageUrl) : false;
+  
+  // 이미지 sizes 속성 (공통 유틸리티 함수 사용)
+  const imageSizes = getImageSizes("detail");
 
   // 주소 조합
   const fullAddress = detail.addr2
@@ -133,16 +148,17 @@ export function DetailInfo({ detail, className }: DetailInfoProps) {
       </div>
 
       {/* 대표 이미지 */}
-      {detail.firstimage && !imageError ? (
+      {imageUrl && !imageError ? (
         <div className="relative w-full h-64 sm:h-80 md:h-96 rounded-lg overflow-hidden">
           <Image
-            src={detail.firstimage}
+            src={imageUrl}
             alt={detail.title}
             fill
             className="object-cover"
             priority
+            unoptimized={httpImage}
             onError={() => setImageError(true)}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+            sizes={imageSizes}
           />
         </div>
       ) : (
@@ -164,8 +180,14 @@ export function DetailInfo({ detail, className }: DetailInfoProps) {
             variant="outline"
             size="sm"
             onClick={handleCopyAddress}
-            className="min-h-[44px] min-w-[44px] sm:min-w-[100px]"
+            className="min-h-[44px] min-w-[44px] sm:min-w-[100px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             aria-label="주소 복사"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleCopyAddress();
+              }
+            }}
           >
             {copied ? (
               <>
@@ -190,7 +212,7 @@ export function DetailInfo({ detail, className }: DetailInfoProps) {
           </p>
           <a
             href={`tel:${detail.tel}`}
-            className="inline-flex items-center gap-2 text-base hover:text-primary transition-colors min-h-[44px]"
+            className="inline-flex items-center gap-2 text-base hover:text-primary transition-colors min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md px-2 py-1"
             aria-label={`${detail.tel}로 전화하기`}
           >
             <Phone className="h-4 w-4" aria-hidden="true" />
@@ -209,7 +231,7 @@ export function DetailInfo({ detail, className }: DetailInfoProps) {
             href={homepageUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-base hover:text-primary transition-colors break-all min-h-[44px]"
+            className="inline-flex items-center gap-2 text-base hover:text-primary transition-colors break-all min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md px-2 py-1"
             aria-label={`${detail.title} 홈페이지 열기 (새 창)`}
           >
             <ExternalLink className="h-4 w-4 flex-shrink-0" aria-hidden="true" />

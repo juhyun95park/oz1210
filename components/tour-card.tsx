@@ -15,17 +15,25 @@
  * - next/image: 이미지 최적화
  * - next/link: 클라이언트 사이드 네비게이션
  * - lib/types/tour.ts: TourItem 타입, CONTENT_TYPE 상수
+ * - lib/utils/image.ts: 이미지 유틸리티 함수
  *
  * @see {@link /docs/PRD.MD} - 관광지 목록 요구사항 참고
  */
 
 "use client";
 
+import { useState, memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CONTENT_TYPE } from "@/lib/types/tour";
 import type { TourItem } from "@/lib/types/tour";
 import { cn } from "@/lib/utils";
+import {
+  normalizeImageUrl,
+  isHttpImage,
+  getImageSizes,
+  DEFAULT_PLACEHOLDER_IMAGE,
+} from "@/lib/utils/image";
 
 interface TourCardProps {
   /**
@@ -36,6 +44,17 @@ interface TourCardProps {
    * 추가 클래스명
    */
   className?: string;
+  /**
+   * 관광지 호버 핸들러 (선택 사항)
+   * 호버 시작 시 호출: (tourId) => void
+   * 호버 종료 시 호출: () => void
+   */
+  onTourHover?: (tourId: string | null) => void;
+  /**
+   * 이미지 priority 설정 (above-the-fold 이미지에만 사용)
+   * 홈페이지 첫 화면에 표시되는 카드에만 true로 설정
+   */
+  priority?: boolean;
 }
 
 /**
@@ -53,23 +72,36 @@ const contentTypeNames: Record<string, string> = {
 };
 
 /**
- * 기본 이미지 URL (이미지가 없을 때 사용)
- * 실제 프로젝트에서는 public/placeholder-tour.jpg 파일을 추가하거나
- * 외부 placeholder 서비스를 사용할 수 있습니다.
- */
-const DEFAULT_IMAGE =
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop";
-
-/**
  * 관광지 카드 컴포넌트
+ * React.memo로 최적화하여 불필요한 리렌더링 방지
  */
-export function TourCard({ tour, className }: TourCardProps) {
-  const imageUrl = tour.firstimage || tour.firstimage2 || DEFAULT_IMAGE;
+function TourCardComponent({
+  tour,
+  className,
+  onTourHover,
+  priority = false,
+}: TourCardProps) {
+  // 이미지 URL 정규화 (공통 유틸리티 함수 사용)
+  const imageUrl = normalizeImageUrl(
+    tour.firstimage || tour.firstimage2,
+    DEFAULT_PLACEHOLDER_IMAGE,
+  ) || DEFAULT_PLACEHOLDER_IMAGE;
+  
   const contentTypeName =
     contentTypeNames[tour.contenttypeid] || "기타";
   const address = tour.addr2
     ? `${tour.addr1} ${tour.addr2}`
     : tour.addr1;
+  
+  // 이미지 에러 상태 관리
+  const [imageError, setImageError] = useState(false);
+  const [currentImageUrl, setCurrentImageUrl] = useState(imageUrl);
+  
+  // HTTP 이미지인지 확인 (공통 유틸리티 함수 사용)
+  const httpImage = isHttpImage(currentImageUrl);
+  
+  // 이미지 sizes 속성 (공통 유틸리티 함수 사용)
+  const imageSizes = getImageSizes("card");
 
   // 키보드 이벤트 처리
   const handleKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
@@ -77,6 +109,20 @@ export function TourCard({ tour, className }: TourCardProps) {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       // Link 컴포넌트가 자동으로 처리하므로 여기서는 preventDefault만 수행
+    }
+  };
+
+  // 호버 시작 핸들러 (데스크톱에서만 동작)
+  const handleMouseEnter = () => {
+    if (onTourHover && window.matchMedia("(hover: hover)").matches) {
+      onTourHover(tour.contentid);
+    }
+  };
+
+  // 호버 종료 핸들러
+  const handleMouseLeave = () => {
+    if (onTourHover) {
+      onTourHover(null);
     }
   };
 
@@ -93,24 +139,36 @@ export function TourCard({ tour, className }: TourCardProps) {
       )}
       aria-label={`${tour.title} 상세보기 - ${contentTypeName}, ${address}`}
       onKeyDown={handleKeyDown}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       role="article"
     >
       {/* 썸네일 이미지 */}
       <div className="relative w-full h-48 sm:h-52 bg-muted overflow-hidden">
-        <Image
-          src={imageUrl}
-          alt={`${tour.title} 썸네일 이미지`}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-110"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          onError={(e) => {
-            // 이미지 로드 실패 시 기본 이미지로 대체
-            const target = e.target as HTMLImageElement;
-            if (target.src !== DEFAULT_IMAGE) {
-              target.src = DEFAULT_IMAGE;
-            }
-          }}
-        />
+        {!imageError ? (
+          <Image
+            src={currentImageUrl}
+            alt={`${tour.title} 썸네일 이미지`}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-110"
+            sizes={imageSizes}
+            priority={priority}
+            unoptimized={httpImage}
+            onError={() => {
+              // 이미지 로드 실패 시 기본 이미지로 대체
+              if (currentImageUrl !== DEFAULT_PLACEHOLDER_IMAGE) {
+                setCurrentImageUrl(DEFAULT_PLACEHOLDER_IMAGE);
+                setImageError(false);
+              } else {
+                setImageError(true);
+              }
+            }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-muted">
+            <p className="text-muted-foreground text-sm">이미지 없음</p>
+          </div>
+        )}
         {/* 관광 타입 뱃지 */}
         <div className="absolute top-2 right-2">
           <span className="inline-flex items-center rounded-full bg-primary/90 text-primary-foreground px-2 py-1 text-xs font-medium backdrop-blur-sm">
@@ -162,4 +220,22 @@ export function TourCard({ tour, className }: TourCardProps) {
     </Link>
   );
 }
+
+// React.memo로 최적화: props가 변경되지 않으면 리렌더링 방지
+export const TourCard = memo(TourCardComponent, (prevProps, nextProps) => {
+  // tour 객체의 참조가 같으면 리렌더링 방지
+  if (prevProps.tour.contentid !== nextProps.tour.contentid) {
+    return false; // 리렌더링 필요
+  }
+  if (prevProps.className !== nextProps.className) {
+    return false; // 리렌더링 필요
+  }
+  if (prevProps.priority !== nextProps.priority) {
+    return false; // 리렌더링 필요
+  }
+  if (prevProps.onTourHover !== nextProps.onTourHover) {
+    return false; // 리렌더링 필요
+  }
+  return true; // 리렌더링 불필요
+});
 
